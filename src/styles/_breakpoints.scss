@@ -1,0 +1,23 @@
+// 1. Define your breakpoints in a SCSS map
+$breakpoints: (
+  "xs": 0,
+  "sm": 576px,
+  "md": 768px,
+  "lg": 992px,
+  "xl": 1200px,
+  "xxl": 1400px,
+);
+
+// 2. Mixin for min-width (going "up" from breakpoint)
+@mixin respond-up($size) {
+  @media (min-width: map-get($breakpoints, $size)) {
+    @content;
+  }
+}
+
+// 3. Mixin for max-width (going "down" from breakpoint)
+@mixin respond-down($size) {
+  @media (max-width: map-get($breakpoints, $size)) {
+    @content;
+  }
+}
