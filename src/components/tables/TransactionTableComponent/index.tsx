@@ -18,17 +18,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { columns } from "@/components/tables/TransactionTableComponent/Columns";
+import { Transaction } from "plaid";
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<Partial<TData>, TValue>[];
+interface DataTableProps<TData> {
   data: Partial<TData>[];
 }
 
-export default function TransactionTableComponent<TData, TValue>({
-  columns,
+export default function TransactionTableComponent<TData>({
   data,
-}: DataTableProps<TData, TValue>) {
-  const table = useReactTable({
+}: DataTableProps<TData>) {
+  const table = useReactTable<Partial<Transaction>>({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),

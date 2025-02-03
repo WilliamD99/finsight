@@ -69,10 +69,7 @@ export default function DashboardClient({
           {/* Transaction History */}
           <div className="mb-10">
             <p className="font-bold text-lg mb-2">Your recent transactions</p>
-            <TransactionTableComponent
-              data={filteredTransactions}
-              columns={columns}
-            />
+            <TransactionTableComponent data={filteredTransactions} />
           </div>
         </div>
       </div>

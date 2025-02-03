@@ -20,6 +20,15 @@ export const columns: ColumnDef<Partial<Transaction>>[] = [
   {
     accessorKey: "date",
     header: "Date",
+    cell: ({ row }) => {
+      let date = new Date(row.getValue("date"));
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const formatted = `${year}-${month}-${day}`;
+
+      return <p>{formatted}</p>;
+    },
   },
   {
     accessorKey: "merchant_name",
@@ -35,7 +44,7 @@ export const columns: ColumnDef<Partial<Transaction>>[] = [
               <></>
             )}
           </div>
-          <p>{row.getValue("merchant_name")}</p>
+          <p>{row.getValue("merchant_name") ?? "Unknown"}</p>
         </div>
       );
     },

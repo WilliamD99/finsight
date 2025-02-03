@@ -39,3 +39,18 @@ export function getDateNDaysBefore(dateString: string, days = 30) {
 
     return `${year}-${month}-${day}`;
 }
+
+export function formatCurrency(string: string | null) {
+    if (!string) return null;
+
+    const amount = parseFloat(string);
+
+    if (isNaN(amount)) {
+        return string;
+    }
+
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'CAD',
+    }).format(amount);
+}

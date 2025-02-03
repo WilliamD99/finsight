@@ -1,7 +1,7 @@
 import React from "react";
 import DashboardClient from "./client";
 
-import { getUserData } from "@/utils/server-utils/utils";
+import { getUserData } from "@/utils/server-utils/actions";
 import { createClient } from "@/utils/supabase/server";
 import plaidClient from "@/utils/plaid/config";
 import CryptoJS from "crypto-js";
