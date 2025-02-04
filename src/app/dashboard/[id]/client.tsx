@@ -31,6 +31,7 @@ import {
 import { formatCurrency } from "@/utils/data";
 import TransactionTableComponent from "@/components/tables/TransactionTableComponent";
 import { columns } from "@/components/tables/TransactionTableComponent/Columns";
+import PieChartAccountsBalance from "@/components/charts/PieChartAccountsBalance";
 
 export default function DashboardAccountPageClient({
   data,
@@ -69,75 +70,68 @@ export default function DashboardAccountPageClient({
   return (
     <>
       <div id="home" className="flex flex-col space-y-5">
-        <div className="grid grid-cols-3 gap-x-10 gap-y-5 xl:gap-x-20">
-          <div className="flex col-span-1 flex-col space-y-5">
-            <div className="flex flex-col space-y-2">
-              <p className="text-lg font-medium">Accounts Overview</p>
-              <div className="flex flex-row space-x-2 items-center">
-                <p className="text-sm">
-                  You can see your accounts overview for this period:
-                </p>
-                <Select
-                  defaultValue={initialRange}
-                  onValueChange={handleUpdateDateRange}
-                >
-                  <SelectTrigger className="w-[100px]">
-                    <SelectValue placeholder="30 days" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {rangeOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <Table className="bg-sidebar-accent rounded-md">
-              <TableHeader className="bg-sidebar-primary-foreground">
-                <TableRow>
-                  <TableHead>Account Name</TableHead>
-                  <TableHead className="w-[100px]">Mask</TableHead>
-                  <TableHead className="w-[200px]">Type</TableHead>
-                  <TableHead className="text-right w-[100px]">
-                    Balance
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {accounts.map((account) => (
-                  <TableRow
-                    onClick={() =>
-                      router.push(`/dashboard/${id}/${account.account_id}`)
-                    }
-                    key={account.account_id}
-                    className="cursor-pointer hover:bg-sidebar-border"
-                  >
-                    <TableCell className="font-medium">
-                      {account.name}
-                    </TableCell>
-                    <TableCell>{account.mask}</TableCell>
-                    <TableCell className="capitalize">{account.type}</TableCell>
-                    <TableCell className="text-right">
-                      {account.balances.current &&
-                        formatCurrency(account.balances.current.toString())}
-                    </TableCell>
-                  </TableRow>
+        <div className="flex flex-col space-y-2">
+          <p className="text-lg font-medium">Accounts Overview</p>
+          <div className="flex flex-row space-x-2 items-center">
+            <p className="text-sm">
+              You can see your accounts overview for this period:
+            </p>
+            <Select
+              defaultValue={initialRange}
+              onValueChange={handleUpdateDateRange}
+            >
+              <SelectTrigger className="w-[100px]">
+                <SelectValue placeholder="30 days" />
+              </SelectTrigger>
+              <SelectContent>
+                {rangeOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
                 ))}
-              </TableBody>
-            </Table>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-x-10 gap-y-5 xl:gap-x-20">
+          <div className="flex col-span-1 flex-col space-y-5">
+            <div className="flex flex-col space-y-2"></div>
+            <div className="grid grid-cols-2 gap-3">
+              <Table className="bg-sidebar-accent rounded-md h-full">
+                <TableHeader className="bg-sidebar-primary-foreground">
+                  <TableRow>
+                    <TableHead className="w-1/2">Account Name</TableHead>
+                    <TableHead className="">Type</TableHead>
+                    <TableHead className="text-right">Balance</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {accounts.map((account) => (
+                    <TableRow
+                      onClick={() =>
+                        router.push(`/dashboard/${id}/${account.account_id}`)
+                      }
+                      key={account.account_id}
+                      className="cursor-pointer hover:bg-sidebar-border"
+                    >
+                      <TableCell className="font-medium">
+                        {account.name}
+                      </TableCell>
+                      <TableCell className="capitalize">
+                        {account.type}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {account.balances.current &&
+                          formatCurrency(account.balances.current.toString())}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              <PieChartAccountsBalance accounts={accounts} />
+            </div>
           </div>
           <div className="flex col-span-1 flex-col space-y-5">
-            <div className="flex flex-row justify-between items-center">
-              <p className="text-lg font-medium">Transactions:</p>
-              <Link
-                className="flex flex-row items-center"
-                href={`/dashboard/${id}/transactions`}
-              >
-                See all <ChevronRight className="size-4" />
-              </Link>
-            </div>
             <Table className="bg-sidebar-accent rounded-md">
               <TableBody>
                 {data.map((transaction) => (
@@ -166,7 +160,7 @@ export default function DashboardAccountPageClient({
               </TableBody>
             </Table>
           </div>
-          <div className="flex col-span-1 flex-col space-y-5">
+          {/* <div className="flex col-span-1 flex-col space-y-5">
             <div className="flex flex-row justify-between items-center">
               <p className="text-lg font-medium">Transactions:</p>
               <Link
@@ -177,9 +171,9 @@ export default function DashboardAccountPageClient({
               </Link>
             </div>
             <TransactionTableComponent data={data} />
-          </div>
+          </div> */}
         </div>
-        <div className="grid grid-cols-3 gap-x-10 gap-y-5 xl:gap-x-20">
+        {/* <div className="grid grid-cols-3 gap-x-10 gap-y-5 xl:gap-x-20">
           <div className="flex col-span-2 flex-col space-y-5">
             <p className="text-lg font-medium">Analytics & budgeting :</p>
             <Table className="bg-sidebar-accent rounded-md">
@@ -216,7 +210,7 @@ export default function DashboardAccountPageClient({
               </TableBody>
             </Table>
           </div>
-        </div>
+        </div> */}
       </div>
     </>
   );
