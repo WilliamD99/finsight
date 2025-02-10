@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { getCurrentDate, getDateNDaysBefore } from "@/utils/data";
-import plaidClient from "@/utils/plaid/config";
-import { decryptToken } from "@/utils/server-utils/utils";
+import { Tables } from "@/types/supabase";
 
 export async function POST(request: NextRequest) {
   const { id, range } = await request.json();
@@ -13,24 +12,29 @@ export async function POST(request: NextRequest) {
     let currentDate = getCurrentDate();
     let startDate = getDateNDaysBefore(currentDate, parseInt(range));
 
-    const token = await supabase
-      .from("Access Token Table")
-      .select("token")
-      .eq("item_id", "ins_48")
-      .single();
-    let encrytedToken = token.data?.token;
-    let decrytedToken = decryptToken(encrytedToken!);
+    let query = supabase
+      .from("Transactions")
+      .select("*")
+      .lte("date", currentDate)
+      .gte("date", startDate);
 
-    const { data: testData } = await plaidClient.transactionsGet({
-      access_token: decrytedToken,
-      start_date: startDate,
-      end_date: currentDate,
-    });
+    if (id) {
+      query = query.eq("access_id", id);
+    }
 
-    // Get the transactions from Supabase
+    const { data, error } = await query;
+
+    if (error) {
+      console.error("Supabase error:", error);
+      return NextResponse.json(
+        { error: "Failed to fetch transactions" },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json(
       {
-        transactions: testData.transactions,
+        transactions: data,
       },
       { status: 200 }
     );

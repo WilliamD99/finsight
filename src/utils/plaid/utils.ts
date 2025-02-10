@@ -1,18 +1,18 @@
-'use server'
-import plaidClient from "@/utils/plaid/config";
-import { CountryCode } from "plaid";
+"use server";
+import { createClient } from "../supabase/server";
 
 export const fetchInstitutionByID = async (id: string) => {
-    try {
-        let res = await plaidClient.institutionsGetById({
-            institution_id: id,
-            country_codes: ["CA" as CountryCode],
-
-        });
-        // Return the name only for now
-        return res.data.institution;
-    } catch (e) {
-        console.log(e);
-        return null;
-    }
+  try {
+    let supabase = await createClient();
+    let res = await supabase
+      .from("Institutions")
+      .select("*")
+      .eq("id", id)
+      .single();
+    // Return the name only for now
+    return res.data || null;
+  } catch (e) {
+    console.log(e);
+    return null;
+  }
 };

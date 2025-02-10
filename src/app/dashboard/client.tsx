@@ -1,75 +1,58 @@
 "use client";
 
+import React from "react";
 import LineChartComponent from "@/components/charts/LineChartComponent";
 import TransactionTableComponent from "@/components/tables/TransactionTableComponent/index";
 import { columns } from "@/components/tables/TransactionTableComponent/Columns";
 import { Transaction } from "plaid";
-import { filterTransactionsByKeys } from "@/utils/data";
+import { filterTransactionsByKeys, formatCurrency } from "@/utils/data";
 import BarChartComponent from "@/components/charts/BarChartComponent";
 import SummaryCards from "@/components/dashboard-components/SummaryCards";
+import { useTransactionData } from "@/hooks/use-transactionData";
+import { useSearchParams, useRouter } from "next/navigation";
 
-const desiredKeys: (keyof Transaction)[] = [
-  "amount",
-  "date",
-  "merchant_name",
-  "payment_channel",
-  "iso_currency_code",
-  "logo_url",
-  "name",
-];
+import RangeSelect from "@/components/ui/range-select";
 
-export default function DashboardClient({
-  transactions,
-}: {
-  transactions: Transaction[];
-}) {
-  let filteredTransactions = filterTransactionsByKeys(
-    transactions,
-    desiredKeys
-  );
-  console.log(transactions);
-  // useEffect(() => {
-  //   navigator.serviceWorker
-  //     .register("/sw.js")
-  //     .then((resistration) => console.log("Register", resistration.scope))
-  //     .catch((e) => console.log(e));
-  // }, []);
-  // async function requestSync() {
-  //   if ("serviceWorker" in navigator && "SyncManager" in window) {
-  //     try {
-  //       const registration = await navigator.serviceWorker.ready;
-  //       await (registration as any).sync.register("sync-db");
-  //       console.log("Background sync registered");
-  //     } catch (err) {
-  //       console.error("Sync registration failed", err);
-  //     }
-  //   } else {
-  //     console.log("Background sync not supported");
-  //     // fallback logic
-  //   }
-  // }
+import LineChartSpendingTrend from "@/components/charts/LineChartSpendingTrend";
+import PieChartSpendingDistribution from "@/components/charts/PieChartSpendingDistribution";
+import BarChartTopMerchant from "@/components/charts/BarChartTopMerchant";
+import NetFlowChart from "@/components/charts/NetFlowChart";
+import AccountBalanceTable from "@/components/tables/AccountTable";
+
+export default function DashboardClient({}: {}) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialRange = searchParams.get("range") || "30";
+
+  const { data: transactionData = [] } = useTransactionData({
+    range: initialRange,
+  });
 
   return (
     <>
       <div id="home" className="flex flex-col space-y-5">
-        <div className="grid grid-cols-3 gap-x-10 xl:gap-x-20">
-          <div className="flex col-span-2 flex-col space-y-5">
-            {/* Smmary cards */}
-            <div className="grid grid-cols-2 xl:grid-cols-4 gap-5">
-              {/* <SummaryCards /> */}
-            </div>
-            {/* Summary chart */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 pt-10 gap-x-20 gap-y-10">
-              <LineChartComponent />
-              <BarChartComponent />
-              <BarChartComponent />
-              <BarChartComponent />
-            </div>
+        <div className="flex flex-col space-y-2">
+          <div className="flex flex-row justify-between items-center space-x-2">
+            <p className="text-lg font-medium">Accounts Summary</p>
           </div>
-          {/* Transaction History */}
-          <div className="mb-10">
-            <p className="font-bold text-lg mb-2">Your recent transactions</p>
-            <TransactionTableComponent data={filteredTransactions} />
+          <div className="flex flex-row space-x-2 items-center">
+            <p className="text-sm">
+              You can see your accounts overview for this period:
+            </p>
+            <RangeSelect />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 3xl:grid-cols-3 gap-x-10 gap-y-5 2xl:gap-x-20">
+          <div className="flex col-span-1 flex-col space-y-5">
+            <div className="flex flex-col space-y-2"></div>
+            <AccountBalanceTable />
+            <div className="grid grid-cols-2 gap-3">
+              {/* <PieChartAccountsBalance accounts={accounts} /> */}
+              <NetFlowChart data={transactionData} />
+              <BarChartTopMerchant data={transactionData} />
+              <PieChartSpendingDistribution data={transactionData} />
+              <LineChartSpendingTrend data={transactionData} />
+            </div>
           </div>
         </div>
       </div>

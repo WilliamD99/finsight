@@ -1,14 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
-import { Institution } from "plaid";
 
-const useInstitutions = () => {
+const useInstitutions = ({ id }: { id?: string } = {}) => {
   return useQuery<{
-    institutions: Institution[];
+    institutions: {
+      item_id: string;
+      name: string;
+    }[];
   }>({
-    queryKey: ["institutions"],
+    queryKey: ["institutions", id],
     queryFn: async () => {
-      const res = await fetch("/api/plaid/get-institutions", {
-        method: "GET",
+      const res = await fetch("/api/supabase/get-institutions", {
+        method: "POST",
+        body: JSON.stringify({ id }),
       });
       return res.json();
     },

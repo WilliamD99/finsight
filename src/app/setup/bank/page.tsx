@@ -1,6 +1,6 @@
 import React from "react";
-import { getUserData } from "@/utils/server-utils/utils";
 import SetupBankClient from "./client";
+import { getUserData } from "@/utils/server-utils/actions";
 
 export default async function SetupBank() {
   const user = await getUserData();

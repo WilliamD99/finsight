@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/card";
 import { TrendingUp } from "lucide-react";
 import { useSearchParams } from "next/navigation";
+import { formatCurrency } from "@/utils/data";
 
 // A deterministic function to convert a string to a hex color.
 function stringToColor(str: string): string {
@@ -56,10 +57,15 @@ export default function PieChartAccountsBalance({
     }, {} as ChartConfig);
   }, [accounts]);
 
+  const totalBalance = accounts.reduce((x, y) => {
+    return x + y.balances.current!;
+  }, 0);
   return (
     <Card className="flex flex-col shadow-none">
       <CardHeader className="items-center pb-0">
-        <CardTitle>Total Balance</CardTitle>
+        <CardTitle>
+          Total Balance: {formatCurrency(totalBalance.toString())}
+        </CardTitle>
         <CardDescription>
           Data shown from {initialRange} days period
         </CardDescription>

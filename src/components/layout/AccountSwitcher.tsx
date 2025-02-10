@@ -17,11 +17,15 @@ import {
 import Link from "next/link";
 import { HousePlus, LandmarkIcon, Settings2 } from "lucide-react";
 import useInstitutions from "@/hooks/use-institutions";
-import { Institution } from "plaid";
 import { useToast } from "@/hooks/use-toast";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { Skeleton } from "../ui/skeleton";
+
+interface Institution {
+  item_id: string;
+  name: string;
+}
 
 export default function AccountSwitcher() {
   const { isMobile } = useSidebar();
@@ -49,7 +53,7 @@ export default function AccountSwitcher() {
         // Need to extract the id from the string (in case the path contain params)
         let currentId = currentPath[2].split("?")[0];
         let currentAccount = connectedAccount.find(
-          (account) => account.institution_id === currentId
+          (account) => account.item_id === currentId
         );
         setActiveAccount(currentAccount);
       }
@@ -104,21 +108,18 @@ export default function AccountSwitcher() {
             </Link>
             {connectedAccount.length > 0 &&
               connectedAccount.map((account) => (
-                <Link
-                  key={account.name}
-                  href={`/dashboard/${account.institution_id}`}
-                >
+                <Link key={account.name} href={`/dashboard/${account.item_id}`}>
                   <DropdownMenuItem
                     key={account.name}
                     className={`gap-2 p-2 font-semibold cursor-pointer hover:bg-sidebar-accent ${
-                      activeAccount?.institution_id ===
-                        account.institution_id && "bg-sidebar-accent"
+                      activeAccount?.item_id === account.item_id &&
+                      "bg-sidebar-accent"
                     }`}
                   >
                     <div className="flex size-8 items-center justify-center rounded-sm relative">
                       <Image
                         fill
-                        src={`/institution_logo/${account.institution_id}.svg`}
+                        src={`/institution_logo/${account.item_id}.svg`}
                         alt={`${account.name} logo`}
                       />
                     </div>

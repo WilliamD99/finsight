@@ -53,7 +53,9 @@ export default function SetupBankClient({ user }: { user: User }) {
           description: "You're being redirected!",
         });
 
-        router.push(`/setup/import/transactions/${data.id}`);
+        router.push(
+          `/setup/import/transactions/${metadata.institution?.institution_id}`
+        );
       } catch (e) {
         console.log(e);
       }

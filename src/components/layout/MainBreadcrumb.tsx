@@ -15,6 +15,7 @@ export default function MainBreadcrumb() {
   const pathname = usePathname();
   const pathNameSplit = pathname.split("/").filter((e) => e !== "");
   const { data, isLoading } = useInstitutions();
+
   return (
     <Breadcrumb>
       <BreadcrumbList>
@@ -34,7 +35,7 @@ export default function MainBreadcrumb() {
                       <>
                         {
                           data?.institutions.find(
-                            (account) => account.institution_id === path
+                            (account) => account.item_id === path
                           )?.name
                         }
                       </>

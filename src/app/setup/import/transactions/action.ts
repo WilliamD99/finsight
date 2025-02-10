@@ -1,5 +1,6 @@
+"use server";
+
 import { createClient } from "@/utils/supabase/server";
-import { NextRequest, NextResponse } from "next/server";
 import {
   filterTransactionsByKeys,
   getCurrentDate,
@@ -25,28 +26,25 @@ const desiredKeys: (keyof Transaction)[] = [
 ];
 
 // This route need to be given a access token id profile
-export async function POST(request: NextRequest) {
+export async function importTransactionAction(formData: FormData) {
   try {
-    const { id, range, item_id } = await request.json();
+    // const { id, range, item_id } = await request.json();
+    const data = {
+      id: formData.get("id") as string,
+      range: formData.get("range") as string,
+      item_id: formData.get("item_id") as string,
+    };
     let supabase = await createClient();
 
     // Retrieve the access token profile
     let { data: tokenData } = await supabase
       .from("Access Token Table")
       .select("token")
-      .eq("id", id)
+      .eq("id", data.id)
       .single();
     let encryptedToken = tokenData?.token;
 
-    if (!encryptedToken)
-      return NextResponse.json(
-        {
-          error: "Error getting access token",
-        },
-        {
-          status: 500,
-        }
-      );
+    if (!encryptedToken) return null;
 
     // Need to decrypt the token before use
     // const decryptToken = CryptoJS.AES.decrypt(encryptedToken, process.env.ENCRYPTION_KEY!).toString(CryptoJS.enc.Utf8)
@@ -54,7 +52,7 @@ export async function POST(request: NextRequest) {
 
     // From the token, request the transactions from plaid to import
     let currentDate = getCurrentDate();
-    let startDate = getDateNDaysBefore(currentDate, parseInt(range));
+    let startDate = getDateNDaysBefore(currentDate, parseInt(data.range));
 
     let transactionsResponse = await plaidClient.transactionsGet({
       access_token: decryptedToken,
@@ -74,7 +72,7 @@ export async function POST(request: NextRequest) {
       let { personal_finance_category, transaction_id, ...rest } = transaction;
       return {
         ...rest,
-        access_id: item_id,
+        access_id: data.item_id,
         transaction_id: transaction_id!,
         category_2: transaction.personal_finance_category?.primary || null,
       };
@@ -85,33 +83,12 @@ export async function POST(request: NextRequest) {
       .upsert(filteredTransactions as Tables<"Transactions">[]);
 
     if (error) {
-      return NextResponse.json(
-        {
-          error: "Error inserting transactions",
-        },
-        {
-          status: 500,
-        }
-      );
+      return null;
     }
 
-    return NextResponse.json(
-      {
-        message: "success",
-      },
-      {
-        status: 200,
-      }
-    );
+    return { message: "success" };
   } catch (e) {
     console.log(e);
-    return NextResponse.json(
-      {
-        error: "Error getting transactions",
-      },
-      {
-        status: 500,
-      }
-    );
+    return null;
   }
 }

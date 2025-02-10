@@ -53,7 +53,15 @@ export type Database = {
           token?: string
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "Access Token Table_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "Institutions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       "App Settings": {
         Row: {
@@ -91,44 +99,47 @@ export type Database = {
       Transactions: {
         Row: {
           access_id: string | null
+          account_id: string | null
           amount: number | null
           category: string[] | null
+          category_2: string | null
           date: string | null
-          id: number
           iso_currency_code: string | null
           logo_url: string | null
           merchant_name: string | null
           name: string | null
           payment_channel: string | null
-          transaction_id: string | null
+          transaction_id: string
           user_id: string | null
         }
         Insert: {
           access_id?: string | null
+          account_id?: string | null
           amount?: number | null
           category?: string[] | null
+          category_2?: string | null
           date?: string | null
-          id?: number
           iso_currency_code?: string | null
           logo_url?: string | null
           merchant_name?: string | null
           name?: string | null
           payment_channel?: string | null
-          transaction_id?: string | null
+          transaction_id: string
           user_id?: string | null
         }
         Update: {
           access_id?: string | null
+          account_id?: string | null
           amount?: number | null
           category?: string[] | null
+          category_2?: string | null
           date?: string | null
-          id?: number
           iso_currency_code?: string | null
           logo_url?: string | null
           merchant_name?: string | null
           name?: string | null
           payment_channel?: string | null
-          transaction_id?: string | null
+          transaction_id?: string
           user_id?: string | null
         }
         Relationships: [
@@ -136,7 +147,7 @@ export type Database = {
             foreignKeyName: "Transactions_access_id_fkey"
             columns: ["access_id"]
             isOneToOne: false
-            referencedRelation: "Access Token Table"
+            referencedRelation: "Institutions"
             referencedColumns: ["id"]
           },
         ]
