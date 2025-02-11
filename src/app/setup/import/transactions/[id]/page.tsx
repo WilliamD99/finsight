@@ -13,7 +13,7 @@ export default async function TransactionsImportPage({
   const supabase = await createClient();
   const { id: institutionId } = await params;
   const data = await getUserData();
-
+  console.log(data);
   const record = await supabase
     .from("Access Token Table")
     .select("id")

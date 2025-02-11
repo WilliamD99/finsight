@@ -13,7 +13,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/utils/data";
 
 export default function AccountBalanceTable(props: { institutionId?: string }) {
-  const { data: accountData, isLoading } = useAccountBalance(props);
+  const { data: accountData, isLoading, error } = useAccountBalance(props);
+  console.log(error);
   const totalBalance = accountData
     ? accountData
         .flatMap((institution) => institution.accounts) // Extract all accounts

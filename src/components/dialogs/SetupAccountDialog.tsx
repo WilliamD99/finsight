@@ -34,16 +34,17 @@ export default function SetupAccountDialog({
   onSuccess, // Use this props to specify what to do after submit the form
 }: {
   user: User;
-  profile?: Tables<"User Profile">;
+  profile?: Tables<"User Profile"> | null;
   type: "insert" | "update";
   onSuccess?: () => void;
 }) {
   const form = useForm<AccountSetupFormSchema>({
     resolver: zodResolver(accountSetupFormSchema),
     defaultValues: {
-      email: user.email,
+      email: user.email ?? "",
       first_name: profile?.first_name ?? "",
       last_name: profile?.last_name ?? "",
+      phone: 1,
     },
   });
 

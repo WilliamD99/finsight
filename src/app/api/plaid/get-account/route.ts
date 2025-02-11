@@ -14,7 +14,6 @@ export async function POST(request: NextRequest) {
       tokenQuery = tokenQuery.eq("item_id", institutionId);
     }
     const { data: tokenData, error } = await tokenQuery;
-
     if (error || tokenData.length === 0) {
       return NextResponse.json(
         {
@@ -28,12 +27,13 @@ export async function POST(request: NextRequest) {
     let accountBalances = [];
     for (const { token } of tokenData) {
       let decrytedToken = decryptToken(token);
-
       // Fetch account balances from Plaid
       const { data: balanceResponse }: { data: any } =
         await plaidClient.accountsBalanceGet({
           access_token: decrytedToken,
         });
+
+      console.log(balanceResponse);
       accountBalances.push({
         accounts: balanceResponse.accounts,
         name: balanceResponse.item?.institution_name ?? "",

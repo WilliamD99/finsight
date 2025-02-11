@@ -38,15 +38,15 @@ export default function SignupPage() {
 
   const signupAction = async (formData: FormData) => {
     let res = await signup(formData);
-
-    if (res.status !== 201) {
-      toast({
-        title: `Oops, something went wrong (code: ${res.status})`,
-        description: res.message,
-        variant: "destructive",
-        duration: 2000,
-      });
-    }
+    console.log(res);
+    // if (res!.status !== 201) {
+    //   toast({
+    //     title: `Oops, something went wrong (code: ${res!.status})`,
+    //     description: res!.message,
+    //     variant: "destructive",
+    //     duration: 2000,
+    //   });
+    // }
   };
 
   useEffect(() => {

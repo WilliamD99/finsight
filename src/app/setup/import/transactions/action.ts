@@ -34,6 +34,7 @@ export async function importTransactionAction(formData: FormData) {
       range: formData.get("range") as string,
       item_id: formData.get("item_id") as string,
     };
+    console.log(data, "haha");
     let supabase = await createClient();
 
     // Retrieve the access token profile
@@ -44,7 +45,7 @@ export async function importTransactionAction(formData: FormData) {
       .single();
     let encryptedToken = tokenData?.token;
 
-    if (!encryptedToken) return null;
+    if (!encryptedToken) return;
 
     // Need to decrypt the token before use
     // const decryptToken = CryptoJS.AES.decrypt(encryptedToken, process.env.ENCRYPTION_KEY!).toString(CryptoJS.enc.Utf8)
@@ -81,14 +82,9 @@ export async function importTransactionAction(formData: FormData) {
     let { error } = await supabase
       .from("Transactions")
       .upsert(filteredTransactions as Tables<"Transactions">[]);
-
-    if (error) {
-      return null;
-    }
-
-    return { message: "success" };
+    console.log(error);
+    return;
   } catch (e) {
     console.log(e);
-    return null;
   }
 }

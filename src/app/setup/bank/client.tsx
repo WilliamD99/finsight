@@ -79,16 +79,16 @@ export default function SetupBankClient({ user }: { user: User }) {
   }, [linkToken, ready]);
 
   // Not working
-  // useEffect(() => {
-  //   console.log(linkTokenLoading);
-  //   if (linkTokenLoading) {
-  //     toast({
-  //       title: "Loading ...",
-  //       description: "Please wait while we connect to the bank service",
-  //       duration: 3000,
-  //     });
-  //   }
-  // }, [linkTokenLoading]);
+  useEffect(() => {
+    console.log(linkTokenLoading);
+    if (linkTokenLoading) {
+      toast({
+        title: "Loading ...",
+        description: "Please wait while we connect to the bank service",
+        duration: 3000,
+      });
+    }
+  }, [linkTokenLoading]);
 
   return <></>;
 }

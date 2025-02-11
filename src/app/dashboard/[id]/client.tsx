@@ -40,7 +40,7 @@ export default function DashboardAccountPageClient({ id }: { id: string }) {
     institutionId: id,
     range: initialRange,
   });
-
+  console.log(transactionData);
   return (
     <>
       <div id="home" className="flex flex-col space-y-5">

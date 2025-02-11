@@ -20,10 +20,20 @@ export async function POST(request: NextRequest) {
       });
       let plaidData = response.data;
       let token = plaidData.access_token;
-
+      console.log(response);
       if (plaidData) {
         // Encrypt token before storing in database
         try {
+          // Need to add the institution data into the database
+          let insDataRes = await plaidClient.institutionsGetById({
+            institution_id: institution_id,
+            country_codes: ["CA" as CountryCode],
+          });
+          await supabase.from("Institutions").upsert({
+            id: institution_id,
+            name: insDataRes.data.institution.name,
+          });
+
           const encryptedToken = CryptoJS.AES.encrypt(
             token,
             process.env.ENCRYPTION_KEY!
@@ -39,14 +49,11 @@ export async function POST(request: NextRequest) {
             .select("id")
             .single();
           console.log(error);
-          // Need to add the institution data into the database
-          let insDataRes = await plaidClient.institutionsGetById({
-            institution_id: institution_id,
-            country_codes: ["CA" as CountryCode],
-          });
-          await supabase.from("Institutions").upsert({
-            id: institution_id,
-            name: insDataRes.data.institution.name,
+          // Mark the user hasSetup as true if needed
+          await supabase.auth.updateUser({
+            data: {
+              hasSetup: true,
+            },
           });
 
           revalidatePath("/dashboard", "layout");
