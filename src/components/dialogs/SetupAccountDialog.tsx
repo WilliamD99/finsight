@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -26,18 +26,26 @@ import { Input } from "../ui/input";
 import { setupAccountAction } from "@/utils/form/actions/setupAccountAction";
 import { Tables } from "@/types/supabase";
 import { SubmitButton } from "../ui/submit-btn";
+import { Button } from "../ui/button";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function SetupAccountDialog({
   user,
   profile,
-  type = "insert",
   onSuccess, // Use this props to specify what to do after submit the form
 }: {
   user: User;
   profile?: Tables<"User Profile"> | null;
-  type: "insert" | "update";
   onSuccess?: () => void;
 }) {
+  const router = useRouter();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const [isReady, setReady] = useState<boolean>(() => !!profile);
+
   const form = useForm<AccountSetupFormSchema>({
     resolver: zodResolver(accountSetupFormSchema),
     defaultValues: {
@@ -49,10 +57,32 @@ export default function SetupAccountDialog({
   });
 
   const action = async (formData: FormData) => {
-    let message = await setupAccountAction(type, formData);
-
-    if (message.status === 201) {
+    let message = await setupAccountAction(
+      profile ? "update" : "insert",
+      formData
+    );
+    if (message.status === 201 || message.status === 200) {
       if (onSuccess) onSuccess();
+      toast({
+        title: message.message,
+        duration: 1500,
+      });
+      setReady(true);
+
+      // After success insert or update profile
+      // Set the localStorage for easy access
+      localStorage.setItem(
+        `user_profile_${user.id}`,
+        JSON.stringify({
+          email: formData.get("email") as string,
+          first_name: formData.get("first_name") as string,
+          last_name: formData.get("last_name") as string,
+          phone: formData.get("phone") as string,
+        })
+      );
+
+      // Invalidate the profile query
+      queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
     }
   };
 
@@ -122,7 +152,16 @@ export default function SetupAccountDialog({
                 </FormItem>
               )}
             />
-            <SubmitButton className="mt-2">Submit</SubmitButton>
+            <div className="pt-2 w-full flex flex-row items-center justify-between ">
+              <SubmitButton>{profile ? "Update" : "Create"}</SubmitButton>
+              <Button
+                disabled={!isReady}
+                type="button"
+                onClick={() => router.push("/setup/bank")}
+              >
+                Connect Bank
+              </Button>
+            </div>
           </form>
         </Form>
       </AlertDialogContent>

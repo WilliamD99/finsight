@@ -1,10 +1,9 @@
 "use client";
 
-import { login } from "./action";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/20/solid";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
@@ -24,9 +23,7 @@ import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [pwShow, setPwShow] = useState<Boolean>(false);
-  const pwRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
-  const supabase = createClient();
   const router = useRouter();
 
   const form = useForm<LoginFormSchema>({
@@ -38,7 +35,8 @@ export default function LoginPage() {
   });
 
   const loginAction = async (formData: FormData) => {
-    // let res = await login(formData);
+    const supabase = createClient();
+
     const data = {
       email: formData.get("email") as string,
       password: formData.get("password") as string,
@@ -104,7 +102,7 @@ export default function LoginPage() {
                               <div className="flex flex-row items-center justify-between">
                                 <FormLabel>Password</FormLabel>
                                 <Link
-                                  href="#"
+                                  href="/password/forgot"
                                   className="ml-auto text-right text-xs underline-offset-2 hover:underline"
                                 >
                                   Forgot your password?
@@ -118,7 +116,6 @@ export default function LoginPage() {
                                     type={pwShow ? "text" : "password"}
                                     placeholder="Enter your password"
                                     required
-                                    ref={pwRef}
                                   />
                                   <button
                                     type="button"

@@ -19,13 +19,38 @@ export const loginFormSchema = z.object({
 export type LoginFormSchema = z.infer<typeof loginFormSchema>;
 
 // Schema for signup form
-export const signupFormSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6, "Password must be at least 6 characters long"),
-  confirm: z.string().min(6),
-});
+export const signupFormSchema = z
+  .object({
+    email: z.string().email(),
+    password: z.string().min(6, "Password must be at least 6 characters long"),
+    confirm: z.string().min(6),
+  })
+  .refine((data) => data.password === data.confirm, {
+    message: "Passwords do not match",
+    path: ["confirm"],
+  });
 
 export type SignUpFormSchema = z.infer<typeof signupFormSchema>;
+
+// Schema for forgot pw form
+export const forgotFormSchema = z.object({
+  email: z.string().email(),
+});
+
+export type ForgotFormSchema = z.infer<typeof forgotFormSchema>;
+
+// Schema for change pw form
+export const passwordChangeForm = z
+  .object({
+    password: z.string(),
+    confirm: z.string(),
+  })
+  .refine((data) => data.password === data.confirm, {
+    message: "Passwords do not match",
+    path: ["confirm"],
+  });
+
+export type PasswordChangeForm = z.infer<typeof passwordChangeForm>;
 
 // Schema for Transaction Import form
 export const transactionImportFormSchema = z.object({

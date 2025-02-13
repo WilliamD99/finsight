@@ -33,7 +33,6 @@ import Link from "next/link";
 export function NavUser({ user }: { user: User }) {
   const { isMobile } = useSidebar();
   const { data, isLoading } = useUserProfile(user.id);
-
   return (
     <SidebarMenu>
       <SidebarMenuItem>

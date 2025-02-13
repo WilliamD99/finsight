@@ -1,6 +1,7 @@
 import React from "react";
 import Providers from "./provider";
 import { Toaster } from "@/components/ui/toaster";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function RootLayout({
   children,
@@ -10,7 +11,9 @@ export default function RootLayout({
   return (
     <html>
       <body>
-        <Providers>{children}</Providers>
+        <ScrollArea className="h-screen w-full relative">
+          <Providers>{children}</Providers>
+        </ScrollArea>
         <Toaster />
       </body>
     </html>

@@ -17,6 +17,8 @@ export const setupAccountAction = async (
     const data = accountSetupFormSchema.parse(formObject);
     const user = await supabase.auth.getUser();
 
+    let message;
+
     // If the type is insert, new entry will be added
     if (type === "insert") {
       // Create an User profile row
@@ -35,6 +37,7 @@ export const setupAccountAction = async (
           hasSetup: true,
         },
       });
+      message = "Profile created!";
     } else if (type === "update") {
       // Update the user profile based on user's id
       const { error } = await supabase
@@ -45,6 +48,7 @@ export const setupAccountAction = async (
         })
         .eq("id", user.data.user!.id);
       if (error) redirect("/error");
+      message = "Profile updated!";
     } else {
       redirect("/error");
     }
@@ -54,6 +58,7 @@ export const setupAccountAction = async (
     // revalidatePath("/profile", "page")
     return {
       status: 201,
+      message,
     };
   } catch (e) {
     console.log(e);

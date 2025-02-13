@@ -48,13 +48,6 @@ export async function POST(request: NextRequest) {
             })
             .select("id")
             .single();
-          console.log(error);
-          // Mark the user hasSetup as true if needed
-          await supabase.auth.updateUser({
-            data: {
-              hasSetup: true,
-            },
-          });
 
           revalidatePath("/dashboard", "layout");
           return NextResponse.json(

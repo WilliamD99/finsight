@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
         });
 
       // redirect user to specified redirect URL or root of app
-      redirect("/dashboard");
+      redirect("/setup/account");
     }
   }
 

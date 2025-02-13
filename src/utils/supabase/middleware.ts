@@ -42,26 +42,12 @@ export async function updateSession(request: NextRequest) {
     !user &&
     !request.nextUrl.pathname.startsWith("/login") &&
     !request.nextUrl.pathname.startsWith("/signup") &&
-    !request.nextUrl.pathname.startsWith("/auth")
+    !request.nextUrl.pathname.startsWith("/auth") &&
+    !request.nextUrl.pathname.startsWith("/password")
   ) {
-    console.log("this is running");
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone();
     url.pathname = "/login";
-    return NextResponse.redirect(url);
-  }
-
-  //  Check if user has setup
-  //  The user need to connect at least one bank
-  let hasSetup = user?.user_metadata.hasSetup;
-  if (
-    user &&
-    !hasSetup &&
-    !request.nextUrl.pathname.startsWith("/setup") &&
-    !request.nextUrl.pathname.startsWith("/api") // prevent it to reroute api request
-  ) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/setup/account";
     return NextResponse.redirect(url);
   }
 
