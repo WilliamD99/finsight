@@ -10,6 +10,7 @@ import plaidClient from "@/utils/plaid/config";
 import { Transaction } from "plaid";
 import { decryptToken } from "@/utils/server-utils/utils";
 import { Tables } from "@/types/supabase";
+import { TransactionImportFormSchema } from "@/utils/form/schema";
 
 const desiredKeys: (keyof Transaction)[] = [
   "amount",
@@ -26,15 +27,16 @@ const desiredKeys: (keyof Transaction)[] = [
 ];
 
 // This route need to be given a access token id profile
-export async function importTransactionAction(formData: FormData) {
+export async function importTransactionAction(
+  formData: TransactionImportFormSchema
+) {
   try {
     // const { id, range, item_id } = await request.json();
     const data = {
-      id: formData.get("id") as string,
-      range: formData.get("range") as string,
-      item_id: formData.get("item_id") as string,
+      id: formData.id,
+      range: formData.range,
+      item_id: formData.item_id,
     };
-    console.log(data, "haha");
     let supabase = await createClient();
 
     // Retrieve the access token profile
@@ -51,9 +53,16 @@ export async function importTransactionAction(formData: FormData) {
     // const decryptToken = CryptoJS.AES.decrypt(encryptedToken, process.env.ENCRYPTION_KEY!).toString(CryptoJS.enc.Utf8)
     const decryptedToken = decryptToken(encryptedToken);
 
-    // From the token, request the transactions from plaid to import
-    let currentDate = getCurrentDate();
-    let startDate = getDateNDaysBefore(currentDate, parseInt(data.range));
+    let currentDate, startDate;
+
+    if (typeof data.range === "string") {
+      // From the token, request the transactions from plaid to import
+      currentDate = getCurrentDate();
+      startDate = getDateNDaysBefore(currentDate, parseInt(data.range));
+    } else {
+      currentDate = data.range.to!.toISOString().split("T")[0];
+      startDate = data.range.from!.toISOString().split("T")[0];
+    }
 
     let transactionsResponse = await plaidClient.transactionsGet({
       access_token: decryptedToken,

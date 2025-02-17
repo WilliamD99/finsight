@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/utils/supabase/server";
@@ -8,26 +7,37 @@ import { createClient } from "@/utils/supabase/server";
 export async function signup(formData: FormData) {
   const supabase = await createClient();
 
+  // Since email confirmmation is enabled for supabase
+  // signup won't throw any errors if the email is duplicate
+  // The workaround is that check that identities
+
   // type-casting here for convenience
   // in practice, you should validate your inputs
   const data = {
     email: formData.get("email") as string,
     password: formData.get("password") as string,
+  };
+
+  const { data: signUpRes, error: signUpError } = await supabase.auth.signUp({
+    ...data,
     options: {
       data: {
         hasSetup: false,
       },
     },
-  };
+  });
 
-  const { error } = await supabase.auth.signUp(data);
-  console.log(error);
-  if (error) {
+  if (signUpError) {
     return {
-      status: error.status,
-      message: error.message,
+      status: signUpError.status,
+      message: signUpError.message,
+    };
+  } else if (signUpRes.user?.identities?.length === 0) {
+    return {
+      status: 400,
+      message: "User with that email is already registered",
     };
   }
 
-  redirect("/login");
+  redirect("/signup/confirm");
 }

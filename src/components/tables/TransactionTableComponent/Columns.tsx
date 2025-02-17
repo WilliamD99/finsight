@@ -1,6 +1,8 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { ColumnDef } from "@tanstack/react-table";
+import { ArrowUpDown } from "lucide-react";
 import Image from "next/image";
 import { Transaction } from "plaid";
 
@@ -14,12 +16,23 @@ export type Transactions = {
   merchant_name: string;
   name: string;
   payment_channel: string;
+  category: string;
 };
 
 export const columns: ColumnDef<Partial<Transaction>>[] = [
   {
     accessorKey: "date",
-    header: "Date",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting()}
+          className="text-right p-0"
+        >
+          Date
+        </Button>
+      );
+    },
     cell: ({ row }) => {
       let date = new Date(row.getValue("date"));
       const year = date.getFullYear();
@@ -58,14 +71,36 @@ export const columns: ColumnDef<Partial<Transaction>>[] = [
     header: "Payment Channel",
   },
   {
+    accessorKey: "category",
+    header: "Category",
+    cell: ({ row }) => {
+      let catogories: string[] = row.getValue("category") ?? [];
+      return (
+        <div className="flex flex-row items-center">
+          {catogories.join(", ")}
+        </div>
+      );
+    },
+  },
+  {
     accessorKey: "amount",
-    header: "Amount",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting()}
+          className="text-right p-0"
+        >
+          Amount
+        </Button>
+      );
+    },
     cell: ({ row }) => {
       const amount = parseFloat(row.getValue("amount"));
       const isPositive = amount > 0;
       const formatted = new Intl.NumberFormat("en-US", {
         style: "currency",
-        currency: row.original.iso_currency_code ?? "USD",
+        currency: "USD",
       }).format(Math.abs(amount));
 
       return (

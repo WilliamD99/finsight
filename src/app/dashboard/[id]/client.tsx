@@ -1,27 +1,13 @@
 "use client";
 
-import SummaryCards from "@/components/dashboard-components/SummaryCards";
-import { Tables } from "@/types/supabase";
-import { useQuery } from "@tanstack/react-query";
-import React, { Suspense, useEffect } from "react";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import React from "react";
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { AvatarFallback } from "@radix-ui/react-avatar";
 
-import { formatCurrency } from "@/utils/data";
-import TransactionTableComponent from "@/components/tables/TransactionTableComponent";
-import PieChartAccountsBalance from "@/components/charts/PieChartAccountsBalance";
 import NetFlowChart from "@/components/charts/NetFlowChart";
 import { useTransactionData } from "@/hooks/use-transactionData";
 import BarChartTopMerchant from "@/components/charts/BarChartTopMerchant";
@@ -30,17 +16,28 @@ import { ImportIcon } from "lucide-react";
 import LineChartSpendingTrend from "@/components/charts/LineChartSpendingTrend";
 import RangeSelect from "@/components/ui/range-select";
 import AccountBalanceTable from "@/components/tables/AccountTable";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { CircleHelp } from "lucide-react";
+import { useTransactionDateRange } from "@/hooks/use-transactionRange";
+import { Skeleton } from "@/components/ui/skeleton";
+import TransactionTableComponent from "@/components/tables/TransactionTableComponent";
 
 export default function DashboardAccountPageClient({ id }: { id: string }) {
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const initialRange = searchParams.get("range") || "30";
+  const initialRange = decodeURIComponent(searchParams.get("range") || "30");
 
   const { data: transactionData = [] } = useTransactionData({
     institutionId: id,
-    range: initialRange,
+    range: JSON.parse(initialRange),
   });
-  console.log(transactionData);
+  const { data: transactionRange, isLoading: transactionRangeLoading } =
+    useTransactionDateRange();
+
   return (
     <>
       <div id="home" className="flex flex-col space-y-5">
@@ -61,6 +58,34 @@ export default function DashboardAccountPageClient({ id }: { id: string }) {
             </p>
             <RangeSelect />
           </div>
+          {transactionRangeLoading && <Skeleton className="h-5 w-72" />}
+          {transactionRange && (
+            <div className="flex flex-row items-center space-x-1">
+              <p className="italic text-xs text-gray-500">
+                Your transaction data is from{" "}
+                <span className="font-bold">
+                  {transactionRange.min.toDateString()}
+                </span>{" "}
+                to{" "}
+                <span className="font-bold">
+                  {transactionRange.max.toDateString()}
+                </span>
+              </p>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <CircleHelp className="size-3" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>
+                      To add more data, please go to your bank and import more
+                      data.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          )}
         </div>
         <div className="grid grid-cols-1 3xl:grid-cols-3 gap-x-10 gap-y-5 2xl:gap-x-20">
           <div className="flex col-span-1 flex-col space-y-5">
@@ -75,33 +100,7 @@ export default function DashboardAccountPageClient({ id }: { id: string }) {
             </div>
           </div>
           <div className="flex col-span-1 flex-col space-y-5">
-            <Table className="bg-sidebar-accent rounded-md">
-              <TableBody>
-                {transactionData.map((transaction: any) => (
-                  <TableRow
-                    key={transaction.transaction_id}
-                    className="hover:bg-sidebar-border"
-                  >
-                    <TableCell className="font-medium flex flex-row space-x-1 items-center">
-                      <Avatar className="size-8">
-                        {transaction.logo_url ? (
-                          <AvatarImage src={transaction.logo_url} />
-                        ) : (
-                          <AvatarFallback>CN</AvatarFallback>
-                        )}
-                      </Avatar>
-                      <span>{transaction.name}</span>
-                    </TableCell>
-                    <TableCell className="w-[100px]">
-                      {transaction.payment_channel}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      ${transaction.amount}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <TransactionTableComponent data={transactionData} />
           </div>
         </div>
       </div>

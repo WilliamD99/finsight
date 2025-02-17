@@ -39,6 +39,13 @@ export const forgotFormSchema = z.object({
 
 export type ForgotFormSchema = z.infer<typeof forgotFormSchema>;
 
+// Schema for verify OTP form
+export const verifyOtpFormSchema = z.object({
+  code: z.string(),
+});
+
+export type VerifyOtpFormSchema = z.infer<typeof verifyOtpFormSchema>;
+
 // Schema for change pw form
 export const passwordChangeForm = z
   .object({
@@ -55,7 +62,13 @@ export type PasswordChangeForm = z.infer<typeof passwordChangeForm>;
 // Schema for Transaction Import form
 export const transactionImportFormSchema = z.object({
   id: z.string(),
-  range: z.string(),
+  range: z.union([
+    z.string(),
+    z.object({
+      from: z.date().optional(),
+      to: z.date().optional(),
+    }),
+  ]),
   item_id: z.string(),
 });
 

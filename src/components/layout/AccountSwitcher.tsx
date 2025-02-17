@@ -116,7 +116,7 @@ export default function AccountSwitcher() {
                       "bg-sidebar-accent"
                     }`}
                   >
-                    <div className="flex size-8 items-center justify-center rounded-sm relative">
+                    <div className="flex size-6 items-center justify-center rounded-sm relative">
                       <Image
                         fill
                         src={`/institution_logo/${account.item_id}.svg`}

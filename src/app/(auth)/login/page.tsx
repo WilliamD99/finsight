@@ -41,20 +41,24 @@ export default function LoginPage() {
       email: formData.get("email") as string,
       password: formData.get("password") as string,
     };
-    let { error, data: test } = await supabase.auth.signInWithPassword(data);
-    console.log(error, "error");
-    console.log(test, "data");
+    let { error } = await supabase.auth.signInWithOtp({
+      ...data,
+      options: {
+        shouldCreateUser: false,
+      },
+    });
+    console.log(error);
     if (!error) {
-      router.push("/dashboard");
+      router.push(`/login/verify/${encodeURIComponent(data.email)}`);
     }
-    // if (res.status !== 200) {
-    //   toast({
-    //     title: `Login error (code: ${res.status})`,
-    //     description: res.message,
-    //     variant: "destructive",
-    //     duration: 2000,
-    //   });
-    // }
+    if (error) {
+      toast({
+        title: `Login error (code: ${error.code})`,
+        description: error.message,
+        variant: "destructive",
+        duration: 2000,
+      });
+    }
   };
 
   return (
@@ -70,7 +74,7 @@ export default function LoginPage() {
                       <div className="flex flex-col items-center text-center">
                         <h1 className="text-2xl font-bold">Welcome back</h1>
                         <p className="text-balance text-muted-foreground">
-                          Login to your Acme Inc account
+                          Login to your FinSight account
                         </p>
                       </div>
                       <div className="grid gap-2">

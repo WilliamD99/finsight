@@ -5,12 +5,16 @@ import { Tables } from "@/types/supabase";
 
 export async function POST(request: NextRequest) {
   const { id, range } = await request.json();
-
   try {
     const supabase = await createClient();
-
-    let currentDate = getCurrentDate();
-    let startDate = getDateNDaysBefore(currentDate, parseInt(range));
+    let currentDate, startDate;
+    if (typeof range === "number") {
+      currentDate = getCurrentDate();
+      startDate = getDateNDaysBefore(currentDate, range);
+    } else {
+      currentDate = range.to;
+      startDate = range.from;
+    }
 
     let query = supabase
       .from("Transactions")

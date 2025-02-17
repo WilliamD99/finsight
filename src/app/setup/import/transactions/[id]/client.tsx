@@ -19,8 +19,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { SubmitButton } from "@/components/ui/submit-btn";
-import { Input } from "@/components/ui/input";
-import { Form, FormField } from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import {
   transactionImportFormSchema,
@@ -28,6 +27,11 @@ import {
 } from "@/utils/form/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { importTransactionAction } from "../action";
+import { useQueryClient } from "@tanstack/react-query";
+
+import { DateRange } from "react-day-picker";
+
+import CalendarSelector from "@/components/dialogs/CalendarSelector";
 
 export default function TransactionsImportPageClient({
   name = "Unknown",
@@ -38,9 +42,10 @@ export default function TransactionsImportPageClient({
   id: string;
   item_id: string;
 }) {
+  const queryClient = useQueryClient();
   // To enable the Go To Dashboard button (allow enable when user has finish importing)
   const [isReady, setReady] = useState<boolean>(false);
-  const [selectedRange, setSelectedRange] = useState<string>("30");
+  const [selectedRange] = useState<string | DateRange>("30");
 
   const router = useRouter();
   const { toast } = useToast();
@@ -54,22 +59,24 @@ export default function TransactionsImportPageClient({
     },
   });
 
-  const handleImportAction = async (formData: FormData) => {
-    try {
-      const data = {
-        id,
-        range: selectedRange,
-        item_id,
-      };
+  const { register, watch, setValue } = form;
 
-      await importTransactionAction(formData); // Use an actual formData object
+  const currentRange = watch("range"); // string or { from: Date; to: Date }
+
+  const handleImportAction = async () => {
+    try {
+      await importTransactionAction(form.getValues()); // Use an actual formData object
 
       toast({
         title: "Success",
         description: "Transactions imported successfully.",
+        variant: "success",
       });
 
       setReady(true);
+      // Revalidate any related transactions query
+      queryClient.invalidateQueries({ queryKey: ["transactions", item_id] });
+      queryClient.invalidateQueries({ queryKey: ["transaction-range"] });
     } catch (error) {
       console.error("Import failed", error);
       toast({
@@ -97,53 +104,29 @@ export default function TransactionsImportPageClient({
                   into our app. You can select a custom range to import (default
                   is 30 days).
                 </DialogDescription>
-                <FormField
-                  name="id"
-                  render={({ field }) => (
-                    <Input
-                      readOnly
-                      type="hidden"
-                      className=" pointer-events-none"
-                      value={id}
-                      {...form.register("id")}
-                    />
-                  )}
-                />
-                <FormField
-                  name="range"
-                  render={({ field }) => (
-                    <Input
-                      readOnly
-                      type="hidden"
-                      className=" pointer-events-none"
-                      value={selectedRange}
-                      {...form.register("range")}
-                    />
-                  )}
-                />
-                <FormField
-                  name="item_id"
-                  render={({ field }) => (
-                    <Input
-                      readOnly
-                      type="hidden"
-                      className=" pointer-events-none"
-                      value={item_id}
-                      {...form.register("item_id")}
-                    />
-                  )}
-                />
+                <input type="hidden" {...register("id")} />
+                <input type="hidden" {...register("item_id")} />
                 <div className="flex flex-row items-center space-x-2 pt-4">
                   <p>Import Range:</p>
                   <Select
-                    value={selectedRange}
+                    // If `currentRange` is a string like "30", we can show it directly
+                    // If it's an object, let's interpret that as "CUSTOM"
+                    value={
+                      typeof currentRange === "string" ? currentRange : "CUSTOM"
+                    }
                     onValueChange={(value) => {
-                      setSelectedRange(value);
-                      form.setValue("range", value);
+                      if (value === "30" || value === "60" || value === "90") {
+                        setValue("range", value);
+                      } else {
+                        setValue("range", {
+                          from: new Date(),
+                          to: new Date(),
+                        });
+                      }
                     }}
                   >
                     <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="30 days" />
+                      <SelectValue placeholder="Select range" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem className="cursor-pointer" value="30">
@@ -155,9 +138,20 @@ export default function TransactionsImportPageClient({
                       <SelectItem className="cursor-pointer" value="90">
                         90 days
                       </SelectItem>
+                      <SelectItem className="cursor-pointer" value="CUSTOM">
+                        Custom range
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+
+                {typeof currentRange !== "string" && (
+                  <div className="flex flex-row items-center space-x-2 pt-4">
+                    <CalendarSelector
+                      onSelect={(range) => setValue("range", range)}
+                    />
+                  </div>
+                )}
                 <div className="pt-4 flex flex-row space-x-4 justify-end items-center">
                   <SubmitButton>Import</SubmitButton>
                   <Button

@@ -98,8 +98,6 @@ export default function PieChartSpendingDistribution({
     return grouped.reduce((acc, curr) => acc + curr.total_amount, 0);
   }, [grouped]);
 
-  console.log(grouped);
-
   return (
     <Card id="spending-distribution" className="shadow-none">
       <CardHeader className="space-y-2">
