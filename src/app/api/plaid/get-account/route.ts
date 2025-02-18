@@ -2,11 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import plaidClient from "@/utils/plaid/config";
 import { createClient } from "@/utils/supabase/server";
 import { decryptToken } from "@/utils/server-utils/utils";
+import { AccountsGetResponse } from "plaid";
 
 export async function POST(request: NextRequest) {
   const { institutionId } = await request.json();
   try {
     const supabase = await createClient();
+    let userData = await supabase.auth.getUser();
+    if (!userData.data.user) return [];
 
     let tokenQuery = supabase.from("Access Token Table").select("token");
 
@@ -28,16 +31,28 @@ export async function POST(request: NextRequest) {
     for (const { token } of tokenData) {
       let decrytedToken = decryptToken(token);
       // Fetch account balances from Plaid
-      const { data: balanceResponse }: { data: any } =
+      const { data: balanceResponse }: { data: AccountsGetResponse } =
         await plaidClient.accountsBalanceGet({
           access_token: decrytedToken,
         });
 
-      console.log(balanceResponse);
       accountBalances.push({
         accounts: balanceResponse.accounts,
-        name: balanceResponse.item?.institution_name ?? "",
+        name:
+          (balanceResponse.item as { institution_name?: string })
+            ?.institution_name ?? "",
       });
+
+      // Add the balance to the database
+      let accountAddData = balanceResponse.accounts.map((account) => ({
+        ...account,
+        user_id: userData.data.user!.id,
+        ins_id: balanceResponse.item.institution_id,
+      }));
+      let { data: accountAddResponse, error: accountAddError } = await supabase
+        .from("Accounts")
+        .insert(accountAddData);
+      console.log(accountAddError, accountAddResponse);
     }
 
     return NextResponse.json(

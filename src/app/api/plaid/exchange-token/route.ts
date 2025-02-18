@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
       });
       let plaidData = response.data;
       let token = plaidData.access_token;
-      console.log(response);
+      console.log(response, "this is the new token");
       if (plaidData) {
         // Encrypt token before storing in database
         try {
@@ -29,10 +29,15 @@ export async function POST(request: NextRequest) {
             institution_id: institution_id,
             country_codes: ["CA" as CountryCode],
           });
-          await supabase.from("Institutions").upsert({
-            id: institution_id,
-            name: insDataRes.data.institution.name,
-          });
+          await supabase.from("Institutions").upsert(
+            {
+              id: institution_id,
+              name: insDataRes.data.institution.name,
+            },
+            {
+              onConflict: "user_id, item_id",
+            }
+          );
 
           const encryptedToken = CryptoJS.AES.encrypt(
             token,
@@ -41,7 +46,7 @@ export async function POST(request: NextRequest) {
           // Store access token in database
           let { data: supabaseRes, error } = await supabase
             .from("Access Token Table")
-            .insert({
+            .upsert({
               token: encryptedToken,
               item_id: institution_id,
               user_id: user_id,

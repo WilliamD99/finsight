@@ -1,13 +1,14 @@
-"use client";
+import React from "react";
+import TestPageClient from "./client";
+import { getUserData } from "@/utils/server-utils/actions";
 
-import React, { FC } from "react";
+export default async function TestPage() {
+  const user = await getUserData();
+  if (!user) return <></>;
 
-const StudentMngmt: FC = () => {
-  // Add and Update Form Component
   return (
-    <>
-      <button>Add New Card</button>
-    </>
+    <div>
+      <TestPageClient user={user} />
+    </div>
   );
-};
-export default StudentMngmt;
+}

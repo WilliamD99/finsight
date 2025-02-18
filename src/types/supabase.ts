@@ -63,6 +63,53 @@ export type Database = {
           },
         ]
       }
+      Accounts: {
+        Row: {
+          account_id: string
+          balance: string | null
+          id: number
+          ins_id: string | null
+          mask: string | null
+          name: string | null
+          official_name: string | null
+          sub_type: string | null
+          type: string | null
+          user_id: string | null
+        }
+        Insert: {
+          account_id: string
+          balance?: string | null
+          id?: number
+          ins_id?: string | null
+          mask?: string | null
+          name?: string | null
+          official_name?: string | null
+          sub_type?: string | null
+          type?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          account_id?: string
+          balance?: string | null
+          id?: number
+          ins_id?: string | null
+          mask?: string | null
+          name?: string | null
+          official_name?: string | null
+          sub_type?: string | null
+          type?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "Accounts_ins_id_fkey"
+            columns: ["ins_id"]
+            isOneToOne: false
+            referencedRelation: "Institutions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       "App Settings": {
         Row: {
           dashboard: Json | null

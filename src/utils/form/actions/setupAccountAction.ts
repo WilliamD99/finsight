@@ -47,6 +47,11 @@ export const setupAccountAction = async (
           last_name: data.last_name,
         })
         .eq("id", user.data.user!.id);
+      await supabase.auth.updateUser({
+        data: {
+          hasSetup: true,
+        },
+      });
       if (error) redirect("/error");
       message = "Profile updated!";
     } else {

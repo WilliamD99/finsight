@@ -19,6 +19,7 @@ export default function AccountBalanceTable(props: { institutionId?: string }) {
         .flatMap((institution) => institution.accounts) // Extract all accounts
         .reduce((sum, account) => sum + (account.balances?.current || 0), 0)
     : 0; // Sum balances
+  console.log(accountData);
 
   return (
     <Table className="bg-sidebar-accent rounded-md h-full">
