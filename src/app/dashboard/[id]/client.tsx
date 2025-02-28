@@ -37,7 +37,6 @@ export default function DashboardAccountPageClient({ id }: { id: string }) {
   });
   const { data: transactionRange, isLoading: transactionRangeLoading } =
     useTransactionDateRange();
-
   return (
     <>
       <div id="home" className="flex flex-col space-y-5">
@@ -62,14 +61,20 @@ export default function DashboardAccountPageClient({ id }: { id: string }) {
           {transactionRange && (
             <div className="flex flex-row items-center space-x-1">
               <p className="italic text-xs text-gray-500">
-                Your transaction data is from{" "}
-                <span className="font-bold">
-                  {transactionRange.min.toDateString()}
-                </span>{" "}
-                to{" "}
-                <span className="font-bold">
-                  {transactionRange.max.toDateString()}
-                </span>
+                {transactionData.length > 0 ? (
+                  <>
+                    Your transaction data is from{" "}
+                    <span className="font-bold">
+                      {transactionRange.min.toDateString()}
+                    </span>{" "}
+                    to{" "}
+                    <span className="font-bold">
+                      {transactionRange.max.toDateString()}
+                    </span>
+                  </>
+                ) : (
+                  "No transaction data available for this period"
+                )}
               </p>
               <TooltipProvider>
                 <Tooltip>
@@ -87,17 +92,20 @@ export default function DashboardAccountPageClient({ id }: { id: string }) {
             </div>
           )}
         </div>
+
         <div className="grid grid-cols-1 3xl:grid-cols-3 gap-x-10 gap-y-5 2xl:gap-x-20">
           <div className="flex col-span-1 flex-col space-y-5">
             <div className="flex flex-col space-y-2"></div>
             <AccountBalanceTable institutionId={id} />
-            <div className="grid grid-cols-2 gap-3">
-              {/* <PieChartAccountsBalance accounts={accounts} /> */}
-              <NetFlowChart data={transactionData} />
-              <BarChartTopMerchant data={transactionData} />
-              <PieChartSpendingDistribution data={transactionData} />
-              <LineChartSpendingTrend data={transactionData} />
-            </div>
+            {transactionData.length > 0 && (
+              <div className="grid grid-cols-2 gap-3">
+                {/* <PieChartAccountsBalance accounts={accounts} /> */}
+                <NetFlowChart data={transactionData} />
+                <BarChartTopMerchant data={transactionData} />
+                <PieChartSpendingDistribution data={transactionData} />
+                <LineChartSpendingTrend data={transactionData} />
+              </div>
+            )}
           </div>
           <div className="flex col-span-1 flex-col space-y-5">
             <TransactionTableComponent data={transactionData} />

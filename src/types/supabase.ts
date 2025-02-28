@@ -66,37 +66,37 @@ export type Database = {
       Accounts: {
         Row: {
           account_id: string
-          balance: string | null
-          id: number
+          balances: Json | null
+          id: string
           ins_id: string | null
           mask: string | null
           name: string | null
           official_name: string | null
-          sub_type: string | null
+          subtype: string | null
           type: string | null
           user_id: string | null
         }
         Insert: {
           account_id: string
-          balance?: string | null
-          id?: number
+          balances?: Json | null
+          id?: string
           ins_id?: string | null
           mask?: string | null
           name?: string | null
           official_name?: string | null
-          sub_type?: string | null
+          subtype?: string | null
           type?: string | null
           user_id?: string | null
         }
         Update: {
           account_id?: string
-          balance?: string | null
-          id?: number
+          balances?: Json | null
+          id?: string
           ins_id?: string | null
           mask?: string | null
           name?: string | null
           official_name?: string | null
-          sub_type?: string | null
+          subtype?: string | null
           type?: string | null
           user_id?: string | null
         }

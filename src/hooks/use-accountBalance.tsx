@@ -22,20 +22,40 @@ export const useAccountBalance = ({
       | []
     > => {
       try {
-        const res = await fetch("/api/plaid/get-account", {
+        // First try to get data from Supabase
+        const supabaseRes = await fetch("/api/supabase/get-balance", {
           method: "POST",
           body: JSON.stringify({
             institutionId,
           }),
         });
 
-        if (!res.ok) {
-          throw new Error("Failed to fetch account data");
+        if (!supabaseRes.ok) {
+          throw new Error("Failed to fetch from Supabase");
         }
 
-        const data = await res.json();
+        const supabaseData = await supabaseRes.json();
 
-        return data.accounts || [];
+        // If we have data in Supabase, return it
+        if (supabaseData.accounts && supabaseData.accounts.length > 0) {
+          return supabaseData.accounts;
+        }
+
+        // If no data in Supabase, fetch from Plaid
+        const plaidRes = await fetch("/api/plaid/get-account", {
+          method: "POST",
+          body: JSON.stringify({
+            institutionId,
+          }),
+        });
+
+        if (!plaidRes.ok) {
+          throw new Error("Failed to fetch from Plaid");
+        }
+
+        const plaidData = await plaidRes.json();
+
+        return plaidData.accounts || [];
       } catch (e) {
         console.log(e);
         return [];

@@ -9,14 +9,20 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
     let userData = await supabase.auth.getUser();
-    if (!userData.data.user) return [];
+    if (!userData.data.user)
+      return NextResponse.json(
+        {
+          accounts: [],
+        },
+        { status: 200 }
+      );
 
     let tokenQuery = supabase.from("Access Token Table").select("token");
-
     if (institutionId) {
       tokenQuery = tokenQuery.eq("item_id", institutionId);
     }
     const { data: tokenData, error } = await tokenQuery;
+
     if (error || tokenData.length === 0) {
       return NextResponse.json(
         {
@@ -30,11 +36,17 @@ export async function POST(request: NextRequest) {
     let accountBalances = [];
     for (const { token } of tokenData) {
       let decrytedToken = decryptToken(token);
+      console.log(decrytedToken);
       // Fetch account balances from Plaid
       const { data: balanceResponse }: { data: AccountsGetResponse } =
-        await plaidClient.accountsBalanceGet({
-          access_token: decrytedToken,
-        });
+        await plaidClient
+          .accountsBalanceGet({
+            access_token: decrytedToken,
+          })
+          .catch((err) => {
+            console.error("Plaid API Error:", err);
+            throw err;
+          });
 
       accountBalances.push({
         accounts: balanceResponse.accounts,
@@ -49,10 +61,16 @@ export async function POST(request: NextRequest) {
         user_id: userData.data.user!.id,
         ins_id: balanceResponse.item.institution_id,
       }));
-      let { data: accountAddResponse, error: accountAddError } = await supabase
-        .from("Accounts")
-        .insert(accountAddData);
-      console.log(accountAddError, accountAddResponse);
+      let { error } = await supabase.from("Accounts").upsert(
+        accountAddData.map((account) => ({
+          ...account,
+          updated_at: new Date().toISOString(),
+        })) as any,
+        {
+          onConflict: "account_id",
+        }
+      );
+      console.log(error);
     }
 
     return NextResponse.json(

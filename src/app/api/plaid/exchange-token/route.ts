@@ -20,7 +20,6 @@ export async function POST(request: NextRequest) {
       });
       let plaidData = response.data;
       let token = plaidData.access_token;
-      console.log(response, "this is the new token");
       if (plaidData) {
         // Encrypt token before storing in database
         try {
