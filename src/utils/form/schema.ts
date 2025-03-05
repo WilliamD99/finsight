@@ -75,3 +75,31 @@ export const transactionImportFormSchema = z.object({
 export type TransactionImportFormSchema = z.infer<
   typeof transactionImportFormSchema
 >;
+
+const PLAID_CATEGORIES = [
+  "LOAN_PAYMENT",
+  "RENT_AND_UTILITIES",
+  "MEDICAL",
+  "TRANSPORTATION",
+  "FOOD_AND_DRINK",
+  "GENERAL_MERCHANDISE",
+  "HOME_IMPROVEMENT",
+  "ENTERTAINMENT",
+  "PERSONAL_CARE",
+  "GENERAL_SERVICES",
+  "GOVERNMENT_AND_NON_PROFIT",
+  "TRAVEL",
+  "BANK_FEES",
+] as const;
+
+// Schema for Financial Health Indicator settings
+export const financialHealthIndicatorSettingsSchema = z.object({
+  debtToIncomeThreshold: z.number().min(0).max(100),
+  savingsRateThreshold: z.number().min(0).max(100),
+  essentialRatioThreshold: z.number().min(0).max(100),
+  essentialCategories: z.array(z.enum(PLAID_CATEGORIES)),
+});
+
+export type FinancialHealthIndicatorSettingsSchema = z.infer<
+  typeof financialHealthIndicatorSettingsSchema
+>;

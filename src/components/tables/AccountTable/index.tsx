@@ -15,6 +15,14 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
+import {
+  flexRender,
+  getCoreRowModel,
+  getSortedRowModel,
+  SortingState,
+  useReactTable,
+} from "@tanstack/react-table";
+import { Account, columns } from "./Column";
 
 export default function AccountBalanceTable(props: { institutionId?: string }) {
   const { toast } = useToast();
@@ -24,6 +32,29 @@ export default function AccountBalanceTable(props: { institutionId?: string }) {
         .flatMap((institution) => institution.accounts) // Extract all accounts
         .reduce((sum, account) => sum + (account.balances?.current || 0), 0)
     : 0; // Sum balances
+
+  const [sorting, setSorting] = useState<SortingState>([]);
+
+  const table = useReactTable<Account>({
+    data: (accountData ?? []).map((institution) => ({
+      name: institution.name,
+      accounts: institution.accounts.map((account) => ({
+        name: account.name,
+        type: account.type,
+        account_id: account.account_id,
+        balances: {
+          current: account.balances?.current ?? 0,
+        },
+      })),
+    })),
+    columns: columns,
+    getCoreRowModel: getCoreRowModel(),
+    onSortingChange: setSorting,
+    getSortedRowModel: getSortedRowModel(),
+    state: {
+      sorting,
+    },
+  });
 
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -67,48 +98,35 @@ export default function AccountBalanceTable(props: { institutionId?: string }) {
   };
 
   return (
-    <>
-      <Button onClick={handleRefresh} disabled={isRefreshing}>
-        {isRefreshing ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Refreshing...
-          </>
-        ) : (
-          "Request balance"
-        )}
-      </Button>
-      <Table className="bg-sidebar-accent rounded-md h-full">
-        <TableHeader className="bg-sidebar-primary-foreground">
-          <TableRow>
-            <TableHead className="w-1/3">Bank Name</TableHead>
-            <TableHead className="w-1/3">Account Name</TableHead>
-            <TableHead className="">Type</TableHead>
-            <TableHead className="text-right">Balance</TableHead>
-          </TableRow>
+    <div className="rounded-md border p-5 space-y-5">
+      <p className="text-lg font-medium">Account Balance</p>
+      <Table className="">
+        <TableHeader className="bg-theme-lightBackground">
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header) => {
+                return (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                );
+              })}
+            </TableRow>
+          ))}
         </TableHeader>
         <TableBody>
-          {isLoading && (
-            <>
-              {Array.from({ length: 3 }).map((i, index) => (
-                <TableRow key={index}>
-                  <TableCell>
-                    <Skeleton className="h-10 w-full" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-10 w-full" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-10 w-full" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-10 w-full" />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </>
-          )}
-          {accountData && accountData.length > 0 && (
+          {isLoading ? (
+            <TableRow>
+              <TableCell colSpan={columns.length} className="h-24 text-center">
+                Loading...
+              </TableCell>
+            </TableRow>
+          ) : accountData && accountData.length > 0 ? (
             <React.Fragment>
               {accountData.map((item, index) => (
                 <React.Fragment key={`${item.name}-${index}`}>
@@ -129,6 +147,12 @@ export default function AccountBalanceTable(props: { institutionId?: string }) {
                 </React.Fragment>
               ))}
             </React.Fragment>
+          ) : (
+            <TableRow>
+              <TableCell colSpan={columns.length} className="h-24 text-center">
+                No results.
+              </TableCell>
+            </TableRow>
           )}
         </TableBody>
         <TableFooter>
@@ -140,6 +164,18 @@ export default function AccountBalanceTable(props: { institutionId?: string }) {
           </TableRow>
         </TableFooter>
       </Table>
-    </>
+      <div className="flex flex-row justify-between items-center">
+        <Button onClick={handleRefresh} disabled={isRefreshing}>
+          {isRefreshing ? (
+            <>
+              <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+              Syncing...
+            </>
+          ) : (
+            "Sync Balance"
+          )}
+        </Button>
+      </div>
+    </div>
   );
 }

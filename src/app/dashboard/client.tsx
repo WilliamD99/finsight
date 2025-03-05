@@ -18,6 +18,9 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { CircleHelp } from "lucide-react";
+import TransactionTableComponent from "@/components/tables/TransactionTableComponent";
+import CategoryAnalysis from "@/components/charts/BarChartCategoryAnalysis";
+import FinancialHealth from "@/components/charts/FinancialHealthIndicator";
 
 export default function DashboardClient({}: {}) {
   const searchParams = useSearchParams();
@@ -71,15 +74,22 @@ export default function DashboardClient({}: {}) {
       </div>
       <div className="grid grid-cols-1 3xl:grid-cols-3 gap-x-10 gap-y-5 2xl:gap-x-20">
         <div className="flex col-span-1 flex-col space-y-5">
-          <div className="flex flex-col space-y-2"></div>
+          <div className="flex flex-col space-y-2">
+            <FinancialHealth
+              isLoading={transactionRangeLoading}
+              transactions={transactionData}
+            />
+          </div>
           <AccountBalanceTable />
           <div className="grid grid-cols-2 gap-3">
-            {/* <PieChartAccountsBalance accounts={accounts} /> */}
             <NetFlowChart data={transactionData} />
             <BarChartTopMerchant data={transactionData} />
             <PieChartSpendingDistribution data={transactionData} />
-            <LineChartSpendingTrend data={transactionData} />
+            <CategoryAnalysis transactions={transactionData} />
           </div>
+        </div>
+        <div className="flex col-span-1 flex-col space-y-5">
+          <TransactionTableComponent data={transactionData} />
         </div>
       </div>
     </div>

@@ -18,16 +18,6 @@ export async function GET(request: NextRequest) {
       token_hash,
     });
     if (!error) {
-      // If user verify their account, create an UserProfile record
-      const userData = await supabase.auth.getUser();
-      if (!userData.data.user) redirect("/error");
-      const { data: insertProfileRes, error } = await supabase
-        .from("User Profile")
-        .insert({
-          id: userData.data.user.id,
-          email: userData.data.user.email,
-        });
-
       // redirect user to specified redirect URL or root of app
       redirect("/setup/account");
     }

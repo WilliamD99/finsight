@@ -44,6 +44,7 @@ export default function VerifyLoginPageClient({ email }: { email: string }) {
       toast({
         title: `Error code: ${error.code}`,
         description: error.message,
+        variant: "destructive",
       });
     }
   };

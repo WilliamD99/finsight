@@ -2,7 +2,6 @@ import { getUserData } from "@/utils/server-utils/actions";
 import React from "react";
 import AccountSetupClient from "./client";
 import { createClient } from "@/utils/supabase/server";
-import { Tables } from "@/types/supabase";
 
 export default async function AccountSetup() {
   const supabase = await createClient();
