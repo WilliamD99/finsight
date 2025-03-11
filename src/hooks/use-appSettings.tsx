@@ -18,10 +18,13 @@ export default function useAppSettings() {
   // Initialize Supabase
   const supabase = createClient();
 
+  const user = localStorage.getItem("user_profile");
+  const userId = user ? JSON.parse(user).id : null;
+
   // Fetch settings from Supabase and cache it
   const { data: supabaseSettings, isLoading: isSupabaseLoading } =
     useQuery<AppSettings | null>({
-      queryKey: ["app-settings"],
+      queryKey: ["app-settings", userId],
       queryFn: async () => {
         // console.log("🔄 Fetching from Supabase...");
 

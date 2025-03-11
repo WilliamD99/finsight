@@ -59,6 +59,24 @@ export const passwordChangeForm = z
 
 export type PasswordChangeForm = z.infer<typeof passwordChangeForm>;
 
+// Schema for Account Import form - allows importing multiple accounts at once
+export const accountImportFormSchema = z.object({
+  accounts: z.array(
+    z.object({
+      id: z.string(),
+      item_id: z.string(),
+      name: z.string(),
+      type: z.string(),
+      subtype: z.string(),
+      mask: z.string().optional(),
+      balance: z.number().optional(),
+      currency: z.string().optional(),
+    })
+  ),
+});
+
+export type AccountImportFormSchema = z.infer<typeof accountImportFormSchema>;
+
 // Schema for Transaction Import form
 export const transactionImportFormSchema = z.object({
   id: z.string(),

@@ -6,8 +6,18 @@ import { decryptToken } from "@/utils/server-utils/utils";
 
 export async function POST(request: NextRequest) {
   try {
-    const { client_user_id, institution_id } = await request.json();
+    const { institution_id } = await request.json();
     const supabase = await createClient();
+
+    // get current user
+    const { data: user, error: userError } = await supabase.auth.getUser();
+
+    if (userError) {
+      return NextResponse.json(
+        { error: "Error getting user" },
+        { status: 500 }
+      );
+    }
     // Get the access token
     let { data: accessTokenResponse, error } = await supabase
       .from("Access Token Table")
@@ -16,6 +26,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error || !accessTokenResponse) {
+      console.log(error);
       return NextResponse.json(
         {
           error: "Error creating link token",
@@ -28,7 +39,7 @@ export async function POST(request: NextRequest) {
     let access_token = decryptToken(accessTokenResponse.token);
 
     const response = await plaidClient.linkTokenCreate({
-      user: { client_user_id },
+      user: { client_user_id: user.user.id },
       client_name: "FinSight",
       products: [Products.Auth, Products.Transactions],
       country_codes: [CountryCode.Ca],

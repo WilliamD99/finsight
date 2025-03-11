@@ -6,6 +6,10 @@ export const useAccountBalance = ({
 }: {
   institutionId?: string;
 }) => {
+  // read user id from local storage
+  const user = localStorage.getItem("user_profile");
+  const userId = user ? JSON.parse(user).id : null;
+
   return useQuery<
     | {
         name: string;
@@ -13,7 +17,7 @@ export const useAccountBalance = ({
       }[]
     | []
   >({
-    queryKey: ["account-balance", institutionId],
+    queryKey: ["account-balance", userId, institutionId],
     queryFn: async (): Promise<
       | {
           name: string;

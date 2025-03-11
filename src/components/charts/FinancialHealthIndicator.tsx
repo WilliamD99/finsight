@@ -116,7 +116,6 @@ const FinancialHealthContent = ({
             settings.essentialCategories.includes(t.category_2 || "")
         )
         .reduce((sum, t) => sum + t.amount!, 0) / 3;
-
     return {
       debtToIncome: (essentialExpenses / monthlyIncome) * 100,
       savingsRate: ((monthlyIncome - monthlyExpenses) / monthlyIncome) * 100,

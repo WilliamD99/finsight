@@ -38,7 +38,11 @@ export default function SetupBankClient({ user }: { user: User }) {
       metadata: PlaidLinkOnSuccessMetadata
     ) => {
       try {
-        let res = await fetch("/api/plaid/exchange-token", {
+        toast({
+          title: "Please wait",
+          description: "Exchanging token...",
+        });
+        await fetch("/api/plaid/exchange-token", {
           method: "POST",
           body: JSON.stringify({
             public_token: public_token,
@@ -46,15 +50,14 @@ export default function SetupBankClient({ user }: { user: User }) {
             institution_id: metadata.institution?.institution_id,
           }),
         });
-        let data = await res.json();
+        // let data = await res.json();
         queryClient.invalidateQueries({ queryKey: ["institutions"] });
         toast({
           title: "Please wait",
           description: "You're being redirected!",
         });
-
         router.push(
-          `/setup/import/transactions/${metadata.institution?.institution_id}`
+          `/setup/import/accounts/${metadata.institution?.institution_id}`
         );
       } catch (e) {
         console.log(e);
@@ -62,7 +65,7 @@ export default function SetupBankClient({ user }: { user: User }) {
     },
     onExit: () => {
       // If user exits Plaid Link, redirect to dashboard
-      router.push("/dashboard");
+      // router.push("/dashboard");
     },
   });
 

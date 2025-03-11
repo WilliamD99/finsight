@@ -242,17 +242,20 @@ export default function FinancialHealthSettingsModal({
                     </Select>
                   </FormControl>
                   <FormDescription className="text-xs">
-                    Select categories to be considered as essential expenses
+                    Select categories to be considered as essential expenses.
+                    Click the badge to remove the categories.
                   </FormDescription>
                   <div className="flex flex-wrap gap-2 mt-2">
-                    {field.value?.map((category) => (
+                    {currentSettings.essentialCategories?.map((category) => (
                       <Badge
                         key={category}
                         variant="secondary"
                         className="text-xs cursor-pointer hover:opacity-80"
                         onClick={() => {
                           field.onChange(
-                            field.value?.filter((c) => c !== category) || []
+                            currentSettings.essentialCategories?.filter(
+                              (c) => c !== category
+                            ) || []
                           );
                         }}
                       >

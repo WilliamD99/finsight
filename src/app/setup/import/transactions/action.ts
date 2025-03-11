@@ -31,7 +31,6 @@ export async function importTransactionAction(
   formData: TransactionImportFormSchema
 ) {
   try {
-    // const { id, range, item_id } = await request.json();
     const data = {
       id: formData.id,
       range: formData.range,
@@ -40,45 +39,102 @@ export async function importTransactionAction(
     let supabase = await createClient();
 
     // Retrieve the access token profile
-    let { data: tokenData } = await supabase
+    let { data: tokenData, error: tokenError } = await supabase
       .from("Access Token Table")
       .select("token")
       .eq("id", data.id)
       .single();
-    let encryptedToken = tokenData?.token;
 
-    if (!encryptedToken) return;
+    if (tokenError) {
+      return {
+        success: false,
+        error: "Failed to retrieve access token",
+        details: tokenError.message,
+      };
+    }
+
+    let encryptedToken = tokenData?.token;
+    if (!encryptedToken) {
+      return {
+        success: false,
+        error: "Access token not found",
+      };
+    }
 
     // Need to decrypt the token before use
-    // const decryptToken = CryptoJS.AES.decrypt(encryptedToken, process.env.ENCRYPTION_KEY!).toString(CryptoJS.enc.Utf8)
-    const decryptedToken = decryptToken(encryptedToken);
+    let decryptedToken: string;
+    try {
+      decryptedToken = decryptToken(encryptedToken);
+    } catch (decryptError) {
+      return {
+        success: false,
+        error: "Failed to decrypt access token",
+        details: (decryptError as Error).message,
+      };
+    }
 
     let currentDate, startDate;
 
     if (typeof data.range === "string") {
-      // From the token, request the transactions from plaid to import
       currentDate = getCurrentDate();
       startDate = getDateNDaysBefore(currentDate, parseInt(data.range));
     } else {
-      currentDate = data.range.to!.toISOString().split("T")[0];
-      startDate = data.range.from!.toISOString().split("T")[0];
+      if (!data.range.to || !data.range.from) {
+        return {
+          success: false,
+          error: "Invalid date range provided",
+        };
+      }
+      currentDate = data.range.to.toISOString().split("T")[0];
+      startDate = data.range.from.toISOString().split("T")[0];
     }
 
-    let transactionsResponse = await plaidClient.transactionsGet({
-      access_token: decryptedToken,
-      start_date: startDate,
-      end_date: currentDate,
-    });
-    let transactions = transactionsResponse.data.transactions;
+    let transactionsResponse;
+    try {
+      const { data: plaidData } = await plaidClient.transactionsGet({
+        access_token: decryptedToken,
+        start_date: startDate,
+        end_date: currentDate,
+      });
+      transactionsResponse = plaidData;
+    } catch (plaidError: any) {
+      return {
+        success: false,
+        error: "Failed to fetch transactions from Plaid",
+        error_code: plaidError?.response?.data?.error_code,
+        details:
+          plaidError?.response?.data?.error_message || plaidError.message,
+      };
+    }
+
+    // return {
+    //   success: false,
+    //   // transactions: transactionsResponse.transactions,
+    //   error_code: "ITEM_LOGIN_REQUIRED",
+    // };
+
+    if (!transactionsResponse?.transactions) {
+      return {
+        success: false,
+        error: "No transactions data received from Plaid",
+      };
+    }
+
+    let transactions = transactionsResponse.transactions;
     let filteredTransactions = filterTransactionsByKeys(
       transactions,
       desiredKeys
     );
 
+    if (filteredTransactions.length === 0) {
+      return {
+        success: false,
+        error: "No transactions found in the specified date range",
+      };
+    }
+
     // Need to append access_id to each of the transactions
-    // To keep track of which account
     filteredTransactions = filteredTransactions.map((transaction) => {
-      // Exclude the whole personal_finance_category key-value
       let { personal_finance_category, transaction_id, ...rest } = transaction;
       return {
         ...rest,
@@ -87,13 +143,31 @@ export async function importTransactionAction(
         category_2: transaction.personal_finance_category?.primary || null,
       };
     });
+
     // Now add these records to Supabase table
-    let { error } = await supabase
+    let { error: upsertError } = await supabase
       .from("Transactions")
       .upsert(filteredTransactions as Tables<"Transactions">[]);
-    console.log(error);
-    return;
+
+    if (upsertError) {
+      console.log(upsertError);
+      return {
+        success: false,
+        error: "Failed to save transactions to database",
+        details: upsertError?.message,
+      };
+    }
+
+    return {
+      success: true,
+      count: filteredTransactions.length,
+    };
   } catch (e) {
-    console.log(e);
+    console.error("Unexpected error during transaction import:", e);
+    return {
+      success: false,
+      error: "An unexpected error occurred",
+      details: (e as Error).message,
+    };
   }
 }

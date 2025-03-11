@@ -18,6 +18,7 @@ export async function POST(request: NextRequest) {
       const response = await plaidClient.itemPublicTokenExchange({
         public_token,
       });
+      console.log(response.data);
       let plaidData = response.data;
       let token = plaidData.access_token;
       if (plaidData) {
@@ -45,14 +46,21 @@ export async function POST(request: NextRequest) {
           // Store access token in database
           let { data: supabaseRes, error } = await supabase
             .from("Access Token Table")
-            .upsert({
-              token: encryptedToken,
-              item_id: institution_id,
-              user_id: user_id,
-            })
+            .upsert(
+              {
+                token: encryptedToken,
+                item_id: institution_id,
+                user_id: user_id,
+                expired_at: null,
+              },
+              {
+                onConflict: "user_id, item_id",
+              }
+            )
             .select("id")
             .single();
 
+          console.log(error, "hello world");
           revalidatePath("/dashboard", "layout");
           return NextResponse.json(
             {

@@ -21,11 +21,14 @@ const fetchTransactionDateRange = async (): Promise<{
 };
 
 export const useTransactionDateRange = () => {
+  const user = localStorage.getItem("user_profile");
+  const userId = user ? JSON.parse(user).id : null;
+
   return useQuery<{
     min: Date;
     max: Date;
   } | null>({
-    queryKey: ["transaction-range"],
+    queryKey: ["transaction-range", userId],
     queryFn: fetchTransactionDateRange,
   });
 };

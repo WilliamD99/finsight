@@ -36,18 +36,21 @@ export type Database = {
     Tables: {
       "Access Token Table": {
         Row: {
+          expired_at: string | null
           id: string
           item_id: string | null
           token: string
           user_id: string | null
         }
         Insert: {
+          expired_at?: string | null
           id?: string
           item_id?: string | null
           token: string
           user_id?: string | null
         }
         Update: {
+          expired_at?: string | null
           id?: string
           item_id?: string | null
           token?: string
@@ -74,6 +77,7 @@ export type Database = {
           official_name: string | null
           subtype: string | null
           type: string | null
+          updated_at: string | null
           user_id: string | null
         }
         Insert: {
@@ -86,6 +90,7 @@ export type Database = {
           official_name?: string | null
           subtype?: string | null
           type?: string | null
+          updated_at?: string | null
           user_id?: string | null
         }
         Update: {
@@ -98,6 +103,7 @@ export type Database = {
           official_name?: string | null
           subtype?: string | null
           type?: string | null
+          updated_at?: string | null
           user_id?: string | null
         }
         Relationships: [
@@ -197,6 +203,13 @@ export type Database = {
             referencedRelation: "Institutions"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "Transactions_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "Accounts"
+            referencedColumns: ["account_id"]
+          },
         ]
       }
       "User Profile": {
@@ -231,7 +244,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      delete_unverified_users: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

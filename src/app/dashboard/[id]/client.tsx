@@ -1,19 +1,15 @@
 "use client";
 
 import React from "react";
-import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
-import { AvatarFallback } from "@radix-ui/react-avatar";
 
 import NetFlowChart from "@/components/charts/NetFlowChart";
 import { useTransactionData } from "@/hooks/use-transactionData";
 import BarChartTopMerchant from "@/components/charts/BarChartTopMerchant";
 import PieChartSpendingDistribution from "@/components/charts/PieChartSpendingDistribution";
 import { ImportIcon } from "lucide-react";
-import LineChartSpendingTrend from "@/components/charts/LineChartSpendingTrend";
 import RangeSelect from "@/components/ui/range-select";
 import AccountBalanceTable from "@/components/tables/AccountTable";
 import {
@@ -26,17 +22,21 @@ import { CircleHelp } from "lucide-react";
 import { useTransactionDateRange } from "@/hooks/use-transactionRange";
 import { Skeleton } from "@/components/ui/skeleton";
 import TransactionTableComponent from "@/components/tables/TransactionTableComponent";
+import { ChartSkeleton } from "@/components/skeletons/ChartSkeleton";
+import { TransactionTableSkeleton } from "@/components/skeletons/TransactionTableSkeleton";
 
 export default function DashboardAccountPageClient({ id }: { id: string }) {
   const searchParams = useSearchParams();
   const initialRange = decodeURIComponent(searchParams.get("range") || "30");
 
-  const { data: transactionData = [] } = useTransactionData({
-    institutionId: id,
-    range: JSON.parse(initialRange),
-  });
+  const { data: transactionData = [], isLoading: transactionDataLoading } =
+    useTransactionData({
+      institutionId: id,
+      range: JSON.parse(initialRange),
+    });
   const { data: transactionRange, isLoading: transactionRangeLoading } =
     useTransactionDateRange();
+
   return (
     <>
       <div id="home" className="flex flex-col space-y-5">
@@ -97,18 +97,37 @@ export default function DashboardAccountPageClient({ id }: { id: string }) {
           <div className="flex col-span-1 flex-col space-y-5">
             <div className="flex flex-col space-y-2"></div>
             <AccountBalanceTable institutionId={id} />
-            {transactionData.length > 0 && (
+            {transactionDataLoading ? (
               <div className="grid grid-cols-2 gap-3">
-                {/* <PieChartAccountsBalance accounts={accounts} /> */}
-                <NetFlowChart data={transactionData} />
-                <BarChartTopMerchant data={transactionData} />
-                <PieChartSpendingDistribution data={transactionData} />
-                <LineChartSpendingTrend data={transactionData} />
+                <ChartSkeleton
+                  hasSelect
+                  titleWidth="w-32"
+                  descriptionWidth="w-64"
+                />
+                <ChartSkeleton
+                  hasSelect
+                  doubleSelect
+                  titleWidth="w-32"
+                  descriptionWidth="w-48"
+                />
+                <ChartSkeleton titleWidth="w-40" descriptionWidth="w-72" />
               </div>
+            ) : (
+              transactionData.length > 0 && (
+                <div className="grid grid-cols-2 gap-3">
+                  <NetFlowChart data={transactionData} />
+                  <BarChartTopMerchant data={transactionData} />
+                  <PieChartSpendingDistribution data={transactionData} />
+                </div>
+              )
             )}
           </div>
           <div className="flex col-span-1 flex-col space-y-5">
-            <TransactionTableComponent data={transactionData} />
+            {transactionDataLoading ? (
+              <TransactionTableSkeleton rowCount={5} />
+            ) : (
+              <TransactionTableComponent data={transactionData} />
+            )}
           </div>
         </div>
       </div>

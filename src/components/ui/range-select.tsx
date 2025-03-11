@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Select,
   SelectContent,
@@ -44,6 +44,12 @@ export default function RangeSelect() {
   const [rangeState, setRangeState] = useState<string>(() =>
     parseRangeParam(safeParam)
   );
+
+  // Add useEffect to sync state with URL params
+  useEffect(() => {
+    setRangeState(parseRangeParam(safeParam));
+  }, [safeParam]);
+
   const rangeOptions = [
     { value: "30", label: "30 days" },
     { value: "60", label: "60 days" },

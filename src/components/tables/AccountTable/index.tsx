@@ -9,7 +9,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useAccountBalance } from "@/hooks/use-accountBalance";
-import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/utils/data";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -80,7 +79,7 @@ export default function AccountBalanceTable(props: { institutionId?: string }) {
           description: "Please try again",
           variant: "destructive",
         });
-        throw new Error("Failed to fetch from Plaid");
+        // throw new Error("Failed to fetch from Plaid");
       }
       toast({
         title: "Balances refreshed",
@@ -91,8 +90,10 @@ export default function AccountBalanceTable(props: { institutionId?: string }) {
       console.error("Error refreshing balances:", e);
     } finally {
       setIsRefreshing(false);
+      const user = localStorage.getItem("user_profile");
+      const userId = user ? JSON.parse(user).id : null;
       queryClient.invalidateQueries({
-        queryKey: ["account-balance", props.institutionId],
+        queryKey: ["account-balance", userId, props.institutionId],
       });
     }
   };

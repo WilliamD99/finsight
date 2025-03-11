@@ -39,7 +39,7 @@ export const useUserProfile = (id: string) => {
         throw new Error(error?.message || "User profile not found");
       }
       // Save to localStorage for future requests
-      localStorage.setItem(`user_profile_${id}`, JSON.stringify(data));
+      localStorage.setItem(`user_profile`, JSON.stringify(data));
 
       return data;
     },

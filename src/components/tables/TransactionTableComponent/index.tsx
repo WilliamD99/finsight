@@ -43,7 +43,6 @@ export default function TransactionTableComponent<TData>({
   const [pageSize, setPageSize] = useState<string>("5");
   const [pageIndex, setPageIndex] = useState<number>(0);
   const [sorting, setSorting] = useState<SortingState>([]);
-
   const table = useReactTable<Partial<Transaction>>({
     data,
     columns,

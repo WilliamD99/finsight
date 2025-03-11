@@ -66,13 +66,14 @@ export default function SetupAccountDialog({
       toast({
         title: message.message,
         duration: 1500,
+        variant: "success",
       });
       setReady(true);
 
       // After success insert or update profile
       // Set the localStorage for easy access
       localStorage.setItem(
-        `user_profile_${user.id}`,
+        `user_profile`,
         JSON.stringify({
           email: formData.get("email") as string,
           first_name: formData.get("first_name") as string,

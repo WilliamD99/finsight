@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import Link from "next/link";
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -15,129 +16,151 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "../ui/collapsible";
-import { Bell } from "lucide-react";
+import {
+  LayoutDashboard,
+  Wallet,
+  LineChart,
+  Target,
+  Settings,
+  Bell,
+} from "lucide-react";
 
 const data = [
   {
-    title: "Playground",
-    url: "#",
+    title: "Dashboard",
+    url: "/dashboard",
     isActive: true,
-    icon: Bell,
+    icon: LayoutDashboard,
+  },
+  {
+    title: "Accounts",
+    url: "#",
+    icon: Wallet,
     items: [
       {
-        title: "History",
-        url: "#",
+        title: "Overview",
+        url: "/accounts",
       },
       {
-        title: "Starred",
-        url: "#",
+        title: "Connect Bank",
+        url: "/setup/bank",
       },
       {
-        title: "Settings",
-        url: "#",
+        title: "Import Transactions",
+        url: "/setup/import",
       },
     ],
   },
   {
-    title: "Models",
+    title: "Analytics",
+    icon: LineChart,
     url: "#",
-    icon: Bell,
     items: [
       {
-        title: "Genesis",
-        url: "#",
+        title: "Spending Analysis",
+        url: "/analytics/spending",
       },
       {
-        title: "Explorer",
-        url: "#",
+        title: "Income Tracking",
+        url: "/analytics/income",
       },
       {
-        title: "Quantum",
-        url: "#",
+        title: "Category Breakdown",
+        url: "/analytics/categories",
+      },
+      {
+        title: "Merchant Analysis",
+        url: "/analytics/merchants",
       },
     ],
   },
   {
-    title: "Documentation",
-    icon: Bell,
+    title: "Planning",
+    icon: Target,
     url: "#",
     items: [
       {
-        title: "Introduction",
-        url: "#",
+        title: "Budgets",
+        url: "/planning/budgets",
       },
       {
-        title: "Get Started",
-        url: "#",
+        title: "Goals",
+        url: "/planning/goals",
       },
       {
-        title: "Tutorials",
-        url: "#",
-      },
-      {
-        title: "Changelog",
-        url: "#",
+        title: "Savings Rules",
+        url: "/planning/savings",
       },
     ],
   },
   {
     title: "Settings",
-    icon: Bell,
+    icon: Settings,
     url: "#",
     items: [
       {
-        title: "General",
-        url: "#",
+        title: "Profile",
+        url: "/settings/profile",
       },
       {
-        title: "Team",
-        url: "#",
+        title: "Preferences",
+        url: "/settings/preferences",
       },
       {
-        title: "Billing",
-        url: "#",
+        title: "Notifications",
+        url: "/settings/notifications",
       },
       {
-        title: "Limits",
-        url: "#",
+        title: "Connected Banks",
+        url: "/settings/banks",
       },
     ],
   },
 ];
+
 export default function MainNav() {
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Platform</SidebarGroupLabel>
       <SidebarMenu>
         {data.map((item) => (
-          <Collapsible
-            key={item.title}
-            asChild
-            defaultOpen={item.isActive}
-            className="group/collapsible"
-          >
-            <SidebarMenuItem>
-              <CollapsibleTrigger asChild>
+          <SidebarMenuItem key={item.title}>
+            {item.items ? (
+              <Collapsible
+                asChild
+                defaultOpen={item.isActive}
+                className="group/collapsible"
+              >
+                <div>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton tooltip={item.title}>
+                      {item.icon && <item.icon />}
+                      <span>{item.title}</span>
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <SidebarMenuSub>
+                      {item.items.map((subItem) => (
+                        <SidebarMenuSubItem key={subItem.title}>
+                          <SidebarMenuSubButton asChild>
+                            <Link href={subItem.url}>
+                              <span>{subItem.title}</span>
+                            </Link>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  </CollapsibleContent>
+                </div>
+              </Collapsible>
+            ) : (
+              <Link href={item.url}>
                 <SidebarMenuButton tooltip={item.title}>
                   {item.icon && <item.icon />}
                   <span>{item.title}</span>
                 </SidebarMenuButton>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <SidebarMenuSub>
-                  {item.items?.map((subItem) => (
-                    <SidebarMenuSubItem key={subItem.title}>
-                      <SidebarMenuSubButton asChild>
-                        <a href={subItem.url}>
-                          <span>{subItem.title}</span>
-                        </a>
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
-                  ))}
-                </SidebarMenuSub>
-              </CollapsibleContent>
-            </SidebarMenuItem>
-          </Collapsible>
+              </Link>
+            )}
+          </SidebarMenuItem>
         ))}
       </SidebarMenu>
     </SidebarGroup>
