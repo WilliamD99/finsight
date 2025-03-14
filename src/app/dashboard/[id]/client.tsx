@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -24,6 +24,29 @@ import { Skeleton } from "@/components/ui/skeleton";
 import TransactionTableComponent from "@/components/tables/TransactionTableComponent";
 import { ChartSkeleton } from "@/components/skeletons/ChartSkeleton";
 import { TransactionTableSkeleton } from "@/components/skeletons/TransactionTableSkeleton";
+import { Tables } from "@/types/supabase";
+
+// Memoized chart grid component
+const ChartGrid = React.memo(
+  ({ data }: { data: Tables<"Transactions">[] }) => {
+    return (
+      <div className="grid grid-cols-2 gap-3 grid-auto-rows-min">
+        <NetFlowChart data={data} />
+        <BarChartTopMerchant data={data} />
+        <PieChartSpendingDistribution data={data} />
+      </div>
+    );
+  },
+  (prevProps, nextProps) => {
+    // Custom comparison function
+    return (
+      prevProps.data.length === nextProps.data.length &&
+      JSON.stringify(prevProps.data) === JSON.stringify(nextProps.data)
+    );
+  }
+);
+
+ChartGrid.displayName = "ChartGrid";
 
 export default function DashboardAccountPageClient({ id }: { id: string }) {
   const searchParams = useSearchParams();
@@ -113,13 +136,7 @@ export default function DashboardAccountPageClient({ id }: { id: string }) {
                 <ChartSkeleton titleWidth="w-40" descriptionWidth="w-72" />
               </div>
             ) : (
-              transactionData.length > 0 && (
-                <div className="grid grid-cols-2 gap-3">
-                  <NetFlowChart data={transactionData} />
-                  <BarChartTopMerchant data={transactionData} />
-                  <PieChartSpendingDistribution data={transactionData} />
-                </div>
-              )
+              transactionData.length > 0 && <ChartGrid data={transactionData} />
             )}
           </div>
           <div className="flex col-span-1 flex-col space-y-5">

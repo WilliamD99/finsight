@@ -21,13 +21,35 @@ export const columns: ColumnDef<Account>[] = [
   {
     accessorKey: "name",
     header: () => {
-      return <p className="text-left text-base text-black p-0">Bank Name</p>;
+      return (
+        <div className="text-left font-semibold text-muted-foreground">
+          Bank Name
+        </div>
+      );
+    },
+    cell: ({ row }) => {
+      return (
+        <div className="font-medium text-foreground">
+          {row.getValue("name")}
+        </div>
+      );
     },
   },
   {
     accessorKey: "accounts.name",
     header: () => {
-      return <p className="text-left text-base text-black p-0">Account Name</p>;
+      return (
+        <div className="text-left font-semibold text-muted-foreground">
+          Account Name
+        </div>
+      );
+    },
+    cell: ({ row }) => {
+      return (
+        <div className="font-medium text-foreground">
+          {row.getValue("accounts.name")}
+        </div>
+      );
     },
   },
   {
@@ -37,7 +59,7 @@ export const columns: ColumnDef<Account>[] = [
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting()}
-          className="text-right text-base text-black p-0"
+          className="font-semibold text-muted-foreground hover:text-foreground"
         >
           Type
           <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -45,13 +67,21 @@ export const columns: ColumnDef<Account>[] = [
       );
     },
     cell: ({ row }) => {
-      return <div className="capitalize">{row.getValue("accounts.type")}</div>;
+      return (
+        <div className="font-medium capitalize text-foreground">
+          {row.getValue("accounts.type")}
+        </div>
+      );
     },
   },
   {
     accessorKey: "accounts.balances.current",
     header: ({ column }) => {
-      return <p className="text-right text-base text-black p-0">Balance</p>;
+      return (
+        <div className="text-right font-semibold text-muted-foreground">
+          Balance
+        </div>
+      );
     },
     cell: ({ row }) => {
       const amount = parseFloat(row.getValue("accounts.balances.current"));
@@ -60,7 +90,11 @@ export const columns: ColumnDef<Account>[] = [
         currency: "USD",
       }).format(amount);
 
-      return <div className="text-right font-medium">{formatted}</div>;
+      return (
+        <div className="text-right font-semibold text-foreground">
+          {formatted}
+        </div>
+      );
     },
   },
 ];

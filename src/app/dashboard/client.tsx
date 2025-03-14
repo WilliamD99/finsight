@@ -101,7 +101,7 @@ export default function DashboardClient({}: {}) {
   const renderCharts = useMemo(() => {
     if (transactionDataLoading) {
       return (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 ">
           <ChartSkeleton hasSelect titleWidth="w-32" descriptionWidth="w-64" />
           <ChartSkeleton
             hasSelect
@@ -118,7 +118,7 @@ export default function DashboardClient({}: {}) {
     if (filteredTransactions.length === 0) return null;
 
     return (
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 ">
         <NetFlowChart data={filteredTransactions} />
         <BarChartTopMerchant data={filteredTransactions} />
         <PieChartSpendingDistribution data={filteredTransactions} />

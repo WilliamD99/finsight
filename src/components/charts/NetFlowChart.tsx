@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
   Card,
   CardContent,
@@ -23,13 +23,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tables } from "@/types/supabase";
+import { formatCurrency } from "@/utils/data";
 
 const chartConfig = {
   outflow: {
     color: "hsl(var(--chart-1))",
+    label: "Outflow",
   },
   inflow: {
     color: "hsl(var(--chart-2))",
+    label: "Inflow",
   },
 } satisfies ChartConfig;
 
@@ -113,56 +116,147 @@ export default function NetFlowChart({
     return aggregateChunks(groupedData, filterOption);
   }, [data, filterOption]);
 
+  // Calculate total inflow and outflow
+  const totals = useMemo(() => {
+    return grouped.reduce(
+      (acc, curr) => {
+        acc.totalInflow += Math.abs(curr.inflow);
+        acc.totalOutflow += curr.outflow;
+        return acc;
+      },
+      { totalInflow: 0, totalOutflow: 0 }
+    );
+  }, [grouped]);
+
   return (
     <Card id="netflow" className="shadow-none">
       <CardHeader className="space-y-2">
-        <CardTitle className="flex flex-row items-center justify-between">
-          <p>Inflow - Outflow</p>
-          <Select onValueChange={(e: string) => setFilterOption(e)}>
-            <SelectTrigger className="w-[100px]">
-              <SelectValue placeholder="Daily" />
+        <div className="flex flex-row items-center justify-between">
+          <div className="space-y-1">
+            <CardTitle>Cash Flow Analysis</CardTitle>
+            <CardDescription>
+              Track your income and spending patterns
+            </CardDescription>
+          </div>
+          <Select
+            value={filterOption}
+            onValueChange={(e: string) => setFilterOption(e)}
+          >
+            <SelectTrigger className="w-[130px]">
+              <SelectValue placeholder="Select period" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem className="cursor-pointer" value={"1"}>
-                Daily
+              <SelectItem value="1">Daily view</SelectItem>
+              <SelectItem value="7" disabled={data.length < 7}>
+                Weekly view
               </SelectItem>
-              <SelectItem
-                className="cursor-pointer"
-                disabled={data.length < 7}
-                value={"7"}
-              >
-                7 days period
-              </SelectItem>
-              <SelectItem
-                className="cursor-pointer"
-                disabled={data.length < 30}
-                value={"30"}
-              >
-                30 days period
+              <SelectItem value="30" disabled={data.length < 30}>
+                Monthly view
               </SelectItem>
             </SelectContent>
           </Select>
-        </CardTitle>
-        <CardDescription>
-          Comparision between your net inflow and outflow.
-        </CardDescription>
+        </div>
+        <div className="grid grid-cols-2 gap-4 pt-2">
+          <div className="space-y-1">
+            <p className="text-sm text-muted-foreground">Total Inflow</p>
+            <p className="text-2xl font-bold text-green-600 dark:text-green-500">
+              {formatCurrency(totals.totalInflow.toString())}
+            </p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-sm text-muted-foreground">Total Outflow</p>
+            <p className="text-2xl font-bold text-red-600 dark:text-red-500">
+              {formatCurrency(totals.totalOutflow.toString())}
+            </p>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig}>
-          <BarChart accessibilityLayer data={grouped}>
-            <CartesianGrid vertical={false} />
+        <ChartContainer config={chartConfig} className="h-[300px]">
+          <BarChart
+            data={grouped}
+            margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis
               dataKey="range"
               tickLine={false}
               tickMargin={10}
               axisLine={false}
+              tickFormatter={(value) => {
+                const date = new Date(value);
+                return filterOption === "1"
+                  ? date.toLocaleDateString(undefined, {
+                      month: "short",
+                      day: "numeric",
+                    })
+                  : date.toLocaleDateString(undefined, {
+                      month: "short",
+                      day: "numeric",
+                    });
+              }}
+            />
+            <YAxis
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={(value) => `$${Math.abs(value / 1000)}k`}
             />
             <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent indicator="dashed" />}
+              cursor={{ fill: "var(--muted)" }}
+              content={({ active, payload, label }) => {
+                if (!active || !payload) return null;
+                const date = new Date(label);
+                return (
+                  <div className="rounded-lg border bg-background p-2 shadow-sm">
+                    <div className="grid gap-2">
+                      <div className="flex flex-col">
+                        <span className="text-[0.70rem] uppercase text-muted-foreground">
+                          {date.toLocaleDateString(undefined, {
+                            weekday: "long",
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          })}
+                        </span>
+                      </div>
+                      {payload.map((entry, index) => (
+                        <div
+                          key={`item-${index}`}
+                          className="flex items-center justify-between gap-2"
+                        >
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="h-2 w-2 rounded-full"
+                              style={{
+                                backgroundColor: entry.color,
+                              }}
+                            />
+                            <span className="text-[0.70rem] uppercase text-muted-foreground">
+                              {entry.name}
+                            </span>
+                          </div>
+                          <span className="font-bold tabular-nums">
+                            {formatCurrency(
+                              Math.abs(Number(entry.value) || 0).toString()
+                            )}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              }}
             />
-            <Bar dataKey="outflow" fill="var(--color-outflow)" radius={4} />
-            <Bar dataKey="inflow" fill="var(--color-inflow)" radius={4} />
+            <Bar
+              dataKey="outflow"
+              fill="var(--color-outflow)"
+              radius={[4, 4, 0, 0]}
+            />
+            <Bar
+              dataKey="inflow"
+              fill="var(--color-inflow)"
+              radius={[4, 4, 0, 0]}
+            />
           </BarChart>
         </ChartContainer>
       </CardContent>

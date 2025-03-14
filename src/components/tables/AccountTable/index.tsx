@@ -12,7 +12,7 @@ import { useAccountBalance } from "@/hooks/use-accountBalance";
 import { formatCurrency } from "@/utils/data";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, RefreshCw } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   flexRender,
@@ -22,17 +22,26 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { Account, columns } from "./Column";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function AccountBalanceTable(props: { institutionId?: string }) {
   const { toast } = useToast();
   const { data: accountData, isLoading, error } = useAccountBalance(props);
   const totalBalance = accountData
     ? accountData
-        .flatMap((institution) => institution.accounts) // Extract all accounts
+        .flatMap((institution) => institution.accounts)
         .reduce((sum, account) => sum + (account.balances?.current || 0), 0)
-    : 0; // Sum balances
+    : 0;
 
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const queryClient = useQueryClient();
 
   const table = useReactTable<Account>({
     data: (accountData ?? []).map((institution) => ({
@@ -46,7 +55,7 @@ export default function AccountBalanceTable(props: { institutionId?: string }) {
         },
       })),
     })),
-    columns: columns,
+    columns,
     getCoreRowModel: getCoreRowModel(),
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
@@ -55,9 +64,6 @@ export default function AccountBalanceTable(props: { institutionId?: string }) {
     },
   });
 
-  const queryClient = useQueryClient();
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
   const handleRefresh = async () => {
     setIsRefreshing(true);
     toast({
@@ -65,7 +71,6 @@ export default function AccountBalanceTable(props: { institutionId?: string }) {
       description: "Please wait while we refresh the balances",
     });
     try {
-      // Fetch fresh data from Plaid
       const plaidRes = await fetch("/api/plaid/get-account", {
         method: "POST",
         body: JSON.stringify(
@@ -79,13 +84,13 @@ export default function AccountBalanceTable(props: { institutionId?: string }) {
           description: "Please try again",
           variant: "destructive",
         });
-        // throw new Error("Failed to fetch from Plaid");
+      } else {
+        toast({
+          title: "Balances refreshed",
+          description: "Balances have been refreshed successfully",
+          variant: "success",
+        });
       }
-      toast({
-        title: "Balances refreshed",
-        description: "Balances have been refreshed successfully",
-        variant: "success",
-      });
     } catch (e) {
       console.error("Error refreshing balances:", e);
     } finally {
@@ -99,84 +104,112 @@ export default function AccountBalanceTable(props: { institutionId?: string }) {
   };
 
   return (
-    <div className="rounded-md border p-5 space-y-5">
-      <p className="text-lg font-medium">Account Balance</p>
-      <Table className="">
-        <TableHeader className="bg-theme-lightBackground">
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => {
-                return (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </TableHead>
-                );
-              })}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {isLoading ? (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
-                Loading...
-              </TableCell>
-            </TableRow>
-          ) : accountData && accountData.length > 0 ? (
-            <React.Fragment>
-              {accountData.map((item, index) => (
-                <React.Fragment key={`${item.name}-${index}`}>
-                  {item.accounts.map((account) => (
-                    <TableRow key={account.account_id}>
-                      <TableCell>{item.name}</TableCell>
-                      <TableCell>{account.name}</TableCell>
-                      <TableCell className="capitalize">
-                        {account.type}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {account.balances.current
-                          ? formatCurrency(account.balances.current.toString())
-                          : 0}
-                      </TableCell>
-                    </TableRow>
+    <Card className="shadow-none">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+        <CardTitle className="text-xl font-semibold">Account Balance</CardTitle>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                className="h-8 w-8"
+              >
+                {isRefreshing ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-4 w-4" />
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Sync Balance</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </CardHeader>
+      <CardContent>
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader className="bg-muted/50">
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    <Loader2 className="h-6 w-6 animate-spin mx-auto" />
+                  </TableCell>
+                </TableRow>
+              ) : accountData && accountData.length > 0 ? (
+                <React.Fragment>
+                  {accountData.map((item, index) => (
+                    <React.Fragment key={`${item.name}-${index}`}>
+                      {item.accounts.map((account) => (
+                        <TableRow key={account.account_id}>
+                          <TableCell className="font-medium">
+                            {item.name}
+                          </TableCell>
+                          <TableCell>{account.name}</TableCell>
+                          <TableCell className="capitalize">
+                            {account.type}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {account.balances.current
+                              ? formatCurrency(
+                                  account.balances.current.toString()
+                                )
+                              : "$0.00"}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </React.Fragment>
                   ))}
                 </React.Fragment>
-              ))}
-            </React.Fragment>
-          ) : (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
-                No results.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-        <TableFooter>
-          <TableRow>
-            <TableCell colSpan={3}>Total</TableCell>
-            <TableCell className="text-right">
-              {totalBalance ? formatCurrency(totalBalance?.toString()) : 0}
-            </TableCell>
-          </TableRow>
-        </TableFooter>
-      </Table>
-      <div className="flex flex-row justify-between items-center">
-        <Button onClick={handleRefresh} disabled={isRefreshing}>
-          {isRefreshing ? (
-            <>
-              <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-              Syncing...
-            </>
-          ) : (
-            "Sync Balance"
-          )}
-        </Button>
-      </div>
-    </div>
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center text-muted-foreground"
+                  >
+                    No accounts found.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+            <TableFooter className="bg-muted/50">
+              <TableRow>
+                <TableCell colSpan={3} className="font-semibold">
+                  Total Balance
+                </TableCell>
+                <TableCell className="text-right font-bold">
+                  {totalBalance
+                    ? formatCurrency(totalBalance?.toString())
+                    : "$0.00"}
+                </TableCell>
+              </TableRow>
+            </TableFooter>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

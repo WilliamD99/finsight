@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 @layer base {
+  * {
+    @apply border-border;
+  }
   :root {
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
@@ -72,6 +75,29 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
+
+/* Add smooth transitions for theme changes */
+:root {
+  color-scheme: light;
+}
+
+.dark {
+  color-scheme: dark;
+}
+
+:root,
+[data-theme] {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  transition: all 0.3s ease;
+}
+
+* {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 0.3s;
+}
+
 @layer base {
   * {
     @apply border-border;
